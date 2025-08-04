@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed - NVIDIA Health Camp</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/success.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/01-nvidia-logo-vert-500x200-2c50-d@2x.png" alt="NVIDIA Logo" class="nvidia-logo">
+        </div>
+        
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <h1 class="success-title">Booking Confirmed!</h1>
+            <p class="booking-id">Booking ID: <strong>#{{ booking[0] }}</strong></p>
+            
+            <div class="booking-details">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{ booking[1] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{ booking[2] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">{{ booking[5] }}</span>
+                </div>
+            </div>
+            
+            <div class="booking-details">
+                <div class="section-title">
+                    <i class="fas fa-vial"></i>
+                    Blood Test Appointment
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ booking[6] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ booking[7] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Cabin:</span>
+                    <span class="detail-value">Cabin {{ booking[8] }}</span>
+                </div>
+            </div>
+            
+            {% if booking[9] and booking[10] and booking[11] %}
+            <div class="booking-details">
+                <div class="section-title">
+                    <i class="fas fa-stethoscope"></i>
+                    Consultation Appointment
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ booking[9] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ booking[10] }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Cabin:</span>
+                    <span class="detail-value">Cabin {{ booking[11] }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="important-note">
+                <i class="fas fa-info-circle"></i>
+                <div class="note-content">
+                    <strong>Important:</strong> Please arrive 15 minutes before your scheduled appointment time. 
+                    Bring a valid ID and any relevant medical documents. For blood tests, please fast for 
+                    8-12 hours if instructed by your healthcare provider.
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Book Another Appointment
+                </a>
+                <a href="/admin" class="btn btn-secondary">
+                    <i class="fas fa-list"></i>
+                    View All Bookings
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

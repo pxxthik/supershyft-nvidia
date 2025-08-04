@@ -1,0 +1,252 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    color: #ffffff;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
+}
+
+.nvidia-logo {
+    width: 180px;
+    height: auto;
+    filter: brightness(1.1);
+}
+
+.success-card {
+    background: rgba(26, 26, 26, 0.8);
+    border-radius: 16px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(118, 185, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #76B900 0%, #5a8f00 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    color: #000000;
+    font-size: 32px;
+    box-shadow: 0 8px 25px rgba(118, 185, 0, 0.3);
+}
+
+.success-title {
+    font-size: 32px;
+    font-weight: 300;
+    color: #ffffff;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+}
+
+.booking-id {
+    font-size: 18px;
+    color: #76B900;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+.booking-id strong {
+    color: #76B900;
+    font-weight: 500;
+}
+
+.booking-details {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(118, 185, 0, 0.2);
+    border-radius: 12px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 300;
+    color: #76B900;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(118, 185, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-title i {
+    font-size: 18px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(118, 185, 0, 0.1);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 400;
+    color: #b3b3b3;
+    font-size: 14px;
+}
+
+.detail-value {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.important-note {
+    background: rgba(118, 185, 0, 0.1);
+    border: 1px solid rgba(118, 185, 0, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 30px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    text-align: left;
+}
+
+.important-note i {
+    color: #76B900;
+    font-size: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.note-content {
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.note-content strong {
+    color: #76B900;
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 16px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #76B900 0%, #5a8f00 100%);
+    color: #000000;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(118, 185, 0, 0.4);
+    background: linear-gradient(135deg, #8bc700 0%, #76B900 100%);
+}
+
+.btn-secondary {
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+    border: 1px solid rgba(118, 185, 0, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(118, 185, 0, 0.1);
+    border-color: #76B900;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(118, 185, 0, 0.2);
+}
+
+.btn i {
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+    
+    .success-card {
+        padding: 30px 24px;
+    }
+    
+    .success-title {
+        font-size: 24px;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 16px 0;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .nvidia-logo {
+        width: 150px;
+    }
+    
+    .important-note {
+        padding: 20px;
+    }
+    
+    .booking-details {
+        padding: 24px;
+    }
+}

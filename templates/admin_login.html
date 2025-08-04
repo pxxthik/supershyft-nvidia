@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Supershyft Health Camp</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/admin_login.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="login-title">Admin Access</h1>
+            <p class="login-subtitle">Enter your password to access the admin panel</p>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% set latest_message = messages[-1] %}  <!-- Get the LAST message -->
+                <div class="alert {% if 'successful' in latest_message %}alert-success{% else %}alert-error{% endif %}">
+                    {{ latest_message }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" class="login-form">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+                Access Admin Panel
+            </button>
+        </form>
+        
+        <a href="/" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Booking Form
+        </a>
+        
+        <div class="security-note">
+            <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+            This is a secure area. Access is logged and monitored.
+        </div>
+    </div>
+</body>
+</html>

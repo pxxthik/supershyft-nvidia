@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Supershyft Health Camp</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-bar" style="margin-right: 12px;"></i>Admin Panel</h1>
+            <div>
+                <a href="/" class="btn">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    New Booking
+                </a>
+                <button class="btn btn-success export-btn" onclick="exportToCSV()">
+                    <i class="fas fa-download" style="margin-right: 8px;"></i>
+                    Export CSV
+                </button>
+                <a href="/admin/logout" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalBookings">{{ bookings|length }}</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="withConsultation">{{ bookings|selectattr('9')|list|length }}</div>
+                <div class="stat-label">With Consultation</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="bloodTestOnly">{{ bookings|rejectattr('9')|list|length }}</div>
+                <div class="stat-label">Blood Test Only</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayBookings">0</div>
+                <div class="stat-label">Today's Bookings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="maleCount">{{ bookings|selectattr('4', 'equalto', 'male')|list|length }}
+                </div>
+                <div class="stat-label">Male</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="femaleCount">{{ bookings|selectattr('4', 'equalto', 'female')|list|length
+                    }}</div>
+                <div class="stat-label">Female</div>
+            </div>
+        </div>
+
+        <div class="search-filters">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="searchName">Search Name/Email/Phone</label>
+                    <input type="text" id="searchName" placeholder="Type to search...">
+                </div>
+                <div class="form-group">
+                    <label for="filterGender">Gender</label>
+                    <select id="filterGender">
+                        <option value="">All Genders</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterBloodDate">Blood Test Date</label>
+                    <input type="date" id="filterBloodDate">
+                </div>
+                <div class="form-group">
+                    <label for="filterConsultation">Consultation Status</label>
+                    <select id="filterConsultation">
+                        <option value="">All</option>
+                        <option value="yes">Has Consultation</option>
+                        <option value="no">Blood Test Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterCabin">Blood Test Cabin</label>
+                    <select id="filterCabin">
+                        <option value="">All Cabins</option>
+                        <option value="1">Cabin 1</option>
+                        <option value="2">Cabin 2</option>
+                        <option value="3">Cabin 3</option>
+                        <option value="4">Cabin 4</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sortBy">Sort By</label>
+                    <select id="sortBy">
+                        <option value="id">Booking ID</option>
+                        <option value="name">Name</option>
+                        <option value="date">Blood Test Date</option>
+                        <option value="created">Created Date</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-actions">
+                <button class="btn" onclick="applyFilters()">
+                    <i class="fas fa-search" style="margin-right: 8px;"></i>
+                    Apply Filters
+                </button>
+                <button class="btn btn-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times" style="margin-right: 8px;"></i>
+                    Clear
+                </button>
+                <div class="results-info" id="resultsInfo" style="display: none;">
+                    <span id="resultsCount">0 results found</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bookings-section">
+            <div class="section-title">All Bookings</div>
+
+            {% if bookings %}
+            <div class="results-info">
+                <span>Showing <strong id="displayedCount">{{ bookings|length }}</strong> of <strong>{{ bookings|length
+                        }}</strong> bookings</span>
+                <span>Last updated: <strong id="lastUpdated"></strong></span>
+            </div>
+            <div class="table-container">
+                <table id="bookingsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Phone</th>
+                            <th>Blood Test Date</th>
+                            <th>Blood Test Time</th>
+                            <th>BT Cabin</th>
+                            <th>Consultation Date</th>
+                            <th>Consultation Time</th>
+                            <th>Cons Cabin</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody">
+                        {% for booking in bookings %}
+                        <tr data-booking='{{ booking|tojson|safe }}'>
+                            <td><span class="booking-id">#{{ booking[0] }}</span></td>
+                            <td><strong>{{ booking[1] }}</strong></td>
+                            <td>{{ booking[2] }}</td>
+                            <td>{{ booking[3] }}</td>
+                            <td>
+                                <span class="gender-badge {{ booking[4] }}">{{ booking[4]|title }}</span>
+                            </td>
+                            <td>{{ booking[5] }}</td>
+                            <td>
+                                {% if booking[6] %}
+                                <strong>{{ booking[6] }}</strong>
+                                {% else %}
+                                <span class="no-consultation">Not scheduled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[7] %}
+                                {{ booking[7] }}
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[8] %}
+                                <span class="cabin-badge">Cabin {{ booking[8] }}</span>
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[9] %}
+                                <strong>{{ booking[9] }}</strong>
+                                {% else %}
+                                <span class="no-consultation">Not booked</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[10] %}
+                                {{ booking[10] }}
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[11] %}
+                                <span class="consultation-badge">Cabin {{ booking[11] }}</span>
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[12] %}
+                                {{ booking[12][:16] }}
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No bookings yet</h3>
+                <p>When people start booking appointments, they'll appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        let allBookings = [];
+        let filteredBookings = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get all bookings data
+            const rows = document.querySelectorAll('#bookingsTableBody tr');
+            rows.forEach(row => {
+                const bookingData = JSON.parse(row.getAttribute('data-booking'));
+                allBookings.push(bookingData);
+            });
+            filteredBookings = [...allBookings];
+
+            updateLastUpdated();
+            calculateTodayBookings();
+
+            // Add real-time search
+            document.getElementById('searchName').addEventListener('input', applyFilters);
+        });
+
+        function applyFilters() {
+            const searchName = document.getElementById('searchName').value.toLowerCase();
+            const filterGender = document.getElementById('filterGender').value;
+            const filterBloodDate = document.getElementById('filterBloodDate').value;
+            const filterConsultation = document.getElementById('filterConsultation').value;
+            const filterCabin = document.getElementById('filterCabin').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredBookings = allBookings.filter(booking => {
+                // Search in name, email, phone
+                const searchText = `${booking[1]} ${booking[2]} ${booking[5]}`.toLowerCase();
+                const matchesSearch = !searchName || searchText.includes(searchName);
+
+                // Gender filter
+                const matchesGender = !filterGender || booking[4] === filterGender;
+
+                // Blood test date filter
+                const matchesBloodDate = !filterBloodDate || booking[6] === filterBloodDate;
+
+                // Consultation filter
+                let matchesConsultation = true;
+                if (filterConsultation === 'yes') {
+                    matchesConsultation = booking[9] && booking[10]; // Has consultation
+                } else if (filterConsultation === 'no') {
+                    matchesConsultation = !booking[9] || !booking[10]; // No consultation
+                }
+
+                // Cabin filter
+                const matchesCabin = !filterCabin || booking[8] == filterCabin;
+
+                return matchesSearch && matchesGender && matchesBloodDate && matchesConsultation && matchesCabin;
+            });
+
+            // Sort results
+            filteredBookings.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a[1].localeCompare(b[1]);
+                    case 'date':
+                        return (a[6] || '').localeCompare(b[6] || '');
+                    case 'created':
+                        return (a[12] || '').localeCompare(b[12] || '');
+                    default: // id
+                        return a[0] - b[0];
+                }
+            });
+
+            updateTable();
+            updateStats();
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = '';
+
+            filteredBookings.forEach(booking => {
+                const row = createTableRow(booking);
+                tbody.appendChild(row);
+            });
+
+            // Update results count
+            document.getElementById('displayedCount').textContent = filteredBookings.length;
+
+            // Show results info
+            const resultsInfo = document.getElementById('resultsInfo');
+            const resultsCount = document.getElementById('resultsCount');
+            if (filteredBookings.length !== allBookings.length) {
+                resultsCount.textContent = `${filteredBookings.length} of ${allBookings.length} results`;
+                resultsInfo.style.display = 'block';
+            } else {
+                resultsInfo.style.display = 'none';
+            }
+        }
+
+        function createTableRow(booking) {
+            const row = document.createElement('tr');
+
+            const genderClass = booking[4] || '';
+            const bloodTestDate = booking[6] ? `<strong>${booking[6]}</strong>` : '<span class="no-consultation">Not scheduled</span>';
+            const bloodTestTime = booking[7] || '<span class="no-consultation">-</span>';
+            const bloodTestCabin = booking[8] ? `<span class="cabin-badge">Cabin ${booking[8]}</span>` : '<span class="no-consultation">-</span>';
+            const consultationDate = booking[9] ? `<strong>${booking[9]}</strong>` : '<span class="no-consultation">Not booked</span>';
+            const consultationTime = booking[10] || '<span class="no-consultation">-</span>';
+            const consultationCabin = booking[11] ? `<span class="consultation-badge">Cabin ${booking[11]}</span>` : '<span class="no-consultation">-</span>';
+            const createdAt = booking[12] ? booking[12].substring(0, 16) : '<span class="no-consultation">-</span>';
+
+            row.innerHTML = `
+                <td><span class="booking-id">#${booking[0]}</span></td>
+                <td><strong>${booking[1]}</strong></td>
+                <td>${booking[2]}</td>
+                <td>${booking[3]}</td>
+                <td><span class="gender-badge ${genderClass}">${(booking[4] || '').charAt(0).toUpperCase() + (booking[4] || '').slice(1)}</span></td>
+                <td>${booking[5]}</td>
+                <td>${bloodTestDate}</td>
+                <td>${bloodTestTime}</td>
+                <td>${bloodTestCabin}</td>
+                <td>${consultationDate}</td>
+                <td>${consultationTime}</td>
+                <td>${consultationCabin}</td>
+                <td>${createdAt}</td>
+            `;
+
+            return row;
+        }
+
+        function updateStats() {
+            document.getElementById('totalBookings').textContent = filteredBookings.length;
+
+            const withConsultation = filteredBookings.filter(b => b[9] && b[10]).length;
+            document.getElementById('withConsultation').textContent = withConsultation;
+
+            const bloodTestOnly = filteredBookings.length - withConsultation;
+            document.getElementById('bloodTestOnly').textContent = bloodTestOnly;
+
+            const maleCount = filteredBookings.filter(b => b[4] === 'male').length;
+            document.getElementById('maleCount').textContent = maleCount;
+
+            const femaleCount = filteredBookings.filter(b => b[4] === 'female').length;
+            document.getElementById('femaleCount').textContent = femaleCount;
+        }
+
+        function clearFilters() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('filterGender').value = '';
+            document.getElementById('filterBloodDate').value = '';
+            document.getElementById('filterConsultation').value = '';
+            document.getElementById('filterCabin').value = '';
+            document.getElementById('sortBy').value = 'id';
+
+            filteredBookings = [...allBookings];
+            updateTable();
+            updateStats();
+        }
+
+        function calculateTodayBookings() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayBookings = allBookings.filter(booking =>
+                booking[6] === today || booking[9] === today
+            ).length;
+            document.getElementById('todayBookings').textContent = todayBookings;
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdated').textContent = timeString;
+        }
+
+        function exportToCSV() {
+            const headers = [
+                'ID', 'Name', 'Email', 'Age', 'Gender', 'Phone',
+                'Blood Test Date', 'Blood Test Time', 'Blood Test Cabin',
+                'Consultation Date', 'Consultation Time', 'Consultation Cabin',
+                'Created At'
+            ];
+
+            let csvContent = headers.join(',') + '\n';
+
+            filteredBookings.forEach(booking => {
+                const row = booking.map(field => {
+                    // Handle null/undefined values and escape commas
+                    const value = field || '';
+                    return `"${value.toString().replace(/"/g, '""')}"`;
+                });
+                csvContent += row.join(',') + '\n';
+            });
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `supershyft-bookings-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Refresh data every 30 seconds
+        setInterval(() => {
+            updateLastUpdated();
+        }, 30000);
+    </script>
+</body>
+
+</html>
