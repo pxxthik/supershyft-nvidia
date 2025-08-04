@@ -543,4 +543,7 @@ body {
     .days{
         gap: 0px;
     }
+    #consultationSection{
+        padding: 10px;
+    }
 }
