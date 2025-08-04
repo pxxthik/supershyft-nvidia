@@ -537,4 +537,10 @@ body {
     .nvidia-logo {
         width: 150px;
     }
+    .calendar-grid {
+        padding: 0;
+    }
+    .days{
+        gap: 0px;
+    }
 }
