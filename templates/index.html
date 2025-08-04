@@ -177,17 +177,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Select Cabin</label>
-                    <div id="consultationCabins" class="loading">
-                        Please select a date first
-                    </div>
-                    <input type="hidden" id="consultation_cabin" name="consultation_cabin">
-                </div>
-                
-                <div class="form-group">
                     <label><b>Available</b> Time Slots for Personalised Consultations</label>
                     <div id="consultationSlots" class="loading">
-                        Please select a cabin first
+                        Please select a date first
                     </div>
                     <input type="hidden" id="consultation_time" name="consultation_time">
                 </div>
@@ -382,9 +374,7 @@
         const bloodTestTime = document.getElementById('blood_test_time');
         const consultationRadios = document.querySelectorAll('input[name="want_consultation"]');
         const consultationSection = document.getElementById('consultationSection');
-        const consultationCabins = document.getElementById('consultationCabins');
         const consultationSlots = document.getElementById('consultationSlots');
-        const consultationCabin = document.getElementById('consultation_cabin');
         const consultationTime = document.getElementById('consultation_time');
         const submitBtn = document.getElementById('submitBtn');
         
@@ -401,7 +391,7 @@
             disableWeekends: false,
             minDate: new Date(),
             onDateSelect: (date) => {
-                loadConsultationCabins(date.toISOString().split('T')[0]);
+                loadConsultationSlots(date.toISOString().split('T')[0]);
             }
         });
         
@@ -413,14 +403,13 @@
                 } else {
                     consultationSection.style.display = 'none';
                     document.getElementById('consultation_date').value = '';
-                    consultationCabin.value = '';
                     consultationTime.value = '';
                 }
                 checkFormValidity();
             });
         });
         
-        // Mock function to simulate loading cabins for blood test
+        // Function to load cabins for blood test
         function loadBloodTestCabins(date) {
             bloodTestCabins.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading available cabins...</div>';
             bloodTestSlots.innerHTML = '<div class="loading">Please select a cabin first</div>';
@@ -510,58 +499,12 @@
                 });
         }
         
-        // Function to load consultation cabins
-        function loadConsultationCabins(date) {
-            consultationCabins.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading available cabins...</div>';
-            consultationSlots.innerHTML = '<div class="loading">Please select a cabin first</div>';
-            consultationCabin.value = '';
+        // Function to load consultation time slots
+        function loadConsultationSlots(date) {
+            consultationSlots.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading available slots...</div>';
             consultationTime.value = '';
             
-            fetch(`/get_consultation_cabins_availability?date=${date}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        consultationCabins.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
-                        return;
-                    }
-                    
-                    if (Object.keys(data).length === 0) {
-                        consultationCabins.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px;">No cabins available for this date</div>';
-                        return;
-                    }
-                    
-                    let html = '<div class="cabin-grid">';
-                    Object.entries(data).forEach(([cabin, available]) => {
-                        const isDisabled = available === 0;
-                        html += `<button type="button" class="cabin-button ${isDisabled ? 'disabled' : ''}" data-cabin="${cabin}" ${isDisabled ? 'disabled' : ''}>
-                            <div class="cabin-number">Cabin ${cabin}</div>
-                            <div class="cabin-availability">${available} slots available</div>
-                        </button>`;
-                    });
-                    html += '</div>';
-                    
-                    consultationCabins.innerHTML = html;
-                    
-                    consultationCabins.querySelectorAll('.cabin-button:not(.disabled)').forEach(button => {
-                        button.addEventListener('click', function() {
-                            consultationCabins.querySelectorAll('.cabin-button').forEach(b => b.classList.remove('selected'));
-                            this.classList.add('selected');
-                            consultationCabin.value = this.dataset.cabin;
-                            loadConsultationSlots(document.getElementById('consultation_date').value, this.dataset.cabin);
-                            checkFormValidity();
-                        });
-                    });
-                })
-                .catch(error => {
-                    consultationCabins.innerHTML = '<div class="alert alert-error">Error loading cabins. Please try again.</div>';
-                });
-        }
-        
-        // Function to load consultation time slots
-        function loadConsultationSlots(date, cabin) {
-            consultationSlots.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading available slots...</div>';
-            
-            fetch(`/get_consultation_slots?date=${date}&cabin=${cabin}`)
+            fetch(`/get_consultation_slots?date=${date}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
@@ -570,7 +513,7 @@
                     }
                     
                     if (data.length === 0) {
-                        consultationSlots.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px;">No slots available for this cabin</div>';
+                        consultationSlots.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px;">No slots available for this date</div>';
                         return;
                     }
                     
@@ -632,10 +575,6 @@
                 if (!document.getElementById('consultation_date').value || document.getElementById('consultation_date').value.trim() === '') {
                     isValid = false;
                     missingFields.push('consultation_date');
-                }
-                if (!consultationCabin.value || consultationCabin.value.trim() === '') {
-                    isValid = false;
-                    missingFields.push('consultation_cabin');
                 }
                 if (!consultationTime.value || consultationTime.value.trim() === '') {
                     isValid = false;

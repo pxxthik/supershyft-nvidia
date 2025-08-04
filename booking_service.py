@@ -115,42 +115,10 @@ class ConsultationService:
     """Service class for consultation booking operations"""
     
     @staticmethod
-    def get_cabin_availability(date: str) -> Dict:
-        """Get available slots per cabin for consultations on a given date"""
+    def get_available_slots(date: str) -> List[str]:
+        """Get available time slots for consultations on a given date"""
         if not is_valid_date(date):
-            return {}
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get total time slots available for the day
-        total_slots = len(generate_time_slots(CONSULTATION_START_TIME, CONSULTATION_END_TIME, SLOT_DURATION_CONSULTATION))
-        
-        # Get booked slots per cabin
-        cursor.execute('''
-            SELECT consultation_cabin, COUNT(*) as booked_count
-            FROM bookings 
-            WHERE consultation_date = ? AND consultation_cabin IS NOT NULL
-            GROUP BY consultation_cabin
-        ''', (date,))
-        
-        booked_per_cabin = dict(cursor.fetchall())
-        
-        # Calculate available slots per cabin (1 person per slot for consultations)
-        cabin_availability = {}
-        for cabin in range(1, CONSULTATION_CABINS_COUNT + 1):
-            booked_count = booked_per_cabin.get(cabin, 0)
-            available_slots = total_slots - booked_count
-            cabin_availability[cabin] = max(0, available_slots)
-        
-        conn.close()
-        return cabin_availability
-    
-    @staticmethod
-    def get_available_slots(date: str, cabin: int) -> List[str]:
-        """Get available time slots for a specific consultation cabin on a given date"""
-        if not is_valid_date(date):
-            return []
+            return None
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -158,16 +126,16 @@ class ConsultationService:
         # Get all possible time slots
         all_slots = generate_time_slots(CONSULTATION_START_TIME, CONSULTATION_END_TIME, SLOT_DURATION_CONSULTATION)
         
-        # Get booked slots for this cabin
+        # Get booked slots for this date
         cursor.execute('''
             SELECT consultation_time
             FROM bookings 
-            WHERE consultation_date = ? AND consultation_cabin = ?
-        ''', (date, cabin))
+            WHERE consultation_date = ? AND consultation_time IS NOT NULL
+        ''', (date,))
         
         booked_slots = [row[0] for row in cursor.fetchall()]
         
-        # Filter available slots (only 1 person per consultation slot)
+        # Filter available slots
         available_slots = [slot for slot in all_slots if slot not in booked_slots]
         
         conn.close()
@@ -199,12 +167,10 @@ class BookingManager:
         
         # Check consultation slot availability if consultation is booked
         if (booking_data.get('consultation_date') and 
-            booking_data.get('consultation_time') and 
-            booking_data.get('consultation_cabin')):
+            booking_data.get('consultation_time')):
             
             consultation_available = self.consultation_service.get_available_slots(
-                booking_data['consultation_date'], 
-                booking_data['consultation_cabin']
+                booking_data['consultation_date']
             )
             
             if booking_data['consultation_time'] not in consultation_available:

@@ -76,36 +76,15 @@ def get_blood_test_slots():
 
 
 # API Routes for Consultation Booking
-@app.route('/get_consultation_cabins_availability')
-def get_consultation_cabins_availability():
-    """API endpoint to get available cabins for consultations"""
+@app.route('/get_consultation_slots')
+def get_consultation_slots():
+    """API endpoint to get available time slots for consultations"""
     date_param = request.args.get('date')
+    
     if not date_param:
         return jsonify({'error': 'Date parameter is required'})
     
-    cabin_availability = booking_manager.consultation_service.get_cabin_availability(date_param)
-    
-    if not cabin_availability:
-        return jsonify({'error': 'Invalid date or date is in the past'})
-    
-    return jsonify(cabin_availability)
-
-
-@app.route('/get_consultation_slots')
-def get_consultation_slots():
-    """API endpoint to get available time slots for a specific consultation cabin"""
-    date_param = request.args.get('date')
-    cabin_param = request.args.get('cabin')
-    
-    if not date_param or not cabin_param:
-        return jsonify({'error': 'Date and cabin parameters are required'})
-    
-    try:
-        cabin = int(cabin_param)
-    except ValueError:
-        return jsonify({'error': 'Invalid cabin number'})
-    
-    available_slots = booking_manager.consultation_service.get_available_slots(date_param, cabin)
+    available_slots = booking_manager.consultation_service.get_available_slots(date_param)
     
     if available_slots is None:
         return jsonify({'error': 'Invalid date or date is in the past'})
@@ -137,8 +116,8 @@ def submit_booking():
         
         # Create success message
         success_message = f'Booking confirmed! Your booking ID is {booking_id}. Blood test assigned to Cabin {booking_data["blood_test_cabin"]}.'
-        if booking_data.get('consultation_cabin'):
-            success_message += f' Consultation assigned to Cabin {booking_data["consultation_cabin"]}.'
+        if booking_data.get('consultation_date'):
+            success_message += f' Consultation scheduled for {booking_data["consultation_date"]} at {booking_data["consultation_time"]}.'
         
         flash(success_message)
         return redirect(url_for('booking_success', booking_id=booking_id))

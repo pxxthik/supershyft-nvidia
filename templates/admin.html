@@ -144,7 +144,6 @@
                             <th>BT Cabin</th>
                             <th>Consultation Date</th>
                             <th>Consultation Time</th>
-                            <th>Cons Cabin</th>
                             <th>Created At</th>
                         </tr>
                     </thead>
@@ -196,14 +195,7 @@
                             </td>
                             <td>
                                 {% if booking[11] %}
-                                <span class="consultation-badge">Cabin {{ booking[11] }}</span>
-                                {% else %}
-                                <span class="no-consultation">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if booking[12] %}
-                                {{ booking[12][:16] }}
+                                {{ booking[11][:16] }}
                                 {% else %}
                                 <span class="no-consultation">-</span>
                                 {% endif %}
@@ -284,7 +276,7 @@
                     case 'date':
                         return (a[6] || '').localeCompare(b[6] || '');
                     case 'created':
-                        return (a[12] || '').localeCompare(b[12] || '');
+                        return (a[11] || '').localeCompare(b[11] || '');
                     default: // id
                         return a[0] - b[0];
                 }
@@ -326,8 +318,7 @@
             const bloodTestCabin = booking[8] ? `<span class="cabin-badge">Cabin ${booking[8]}</span>` : '<span class="no-consultation">-</span>';
             const consultationDate = booking[9] ? `<strong>${booking[9]}</strong>` : '<span class="no-consultation">Not booked</span>';
             const consultationTime = booking[10] || '<span class="no-consultation">-</span>';
-            const consultationCabin = booking[11] ? `<span class="consultation-badge">Cabin ${booking[11]}</span>` : '<span class="no-consultation">-</span>';
-            const createdAt = booking[12] ? booking[12].substring(0, 16) : '<span class="no-consultation">-</span>';
+            const createdAt = booking[11] ? booking[11].substring(0, 16) : '<span class="no-consultation">-</span>';
 
             row.innerHTML = `
                 <td><span class="booking-id">#${booking[0]}</span></td>
@@ -341,7 +332,6 @@
                 <td>${bloodTestCabin}</td>
                 <td>${consultationDate}</td>
                 <td>${consultationTime}</td>
-                <td>${consultationCabin}</td>
                 <td>${createdAt}</td>
             `;
 
@@ -395,7 +385,7 @@
             const headers = [
                 'ID', 'Name', 'Email', 'Age', 'Gender', 'Phone',
                 'Blood Test Date', 'Blood Test Time', 'Blood Test Cabin',
-                'Consultation Date', 'Consultation Time', 'Consultation Cabin',
+                'Consultation Date', 'Consultation Time',
                 'Created At'
             ];
 

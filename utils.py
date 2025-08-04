@@ -70,7 +70,6 @@ def validate_booking_data(form_data):
         # Optional consultation fields
         consultation_date = form_data.get('consultation_date')
         consultation_time = form_data.get('consultation_time')
-        consultation_cabin = form_data.get('consultation_cabin')
         
         # Validate required fields
         if not all([name, email, age, gender, phone, blood_test_date, blood_test_time, blood_test_cabin]):
@@ -80,8 +79,6 @@ def validate_booking_data(form_data):
         try:
             age = int(age)
             blood_test_cabin = int(blood_test_cabin)
-            if consultation_cabin:
-                consultation_cabin = int(consultation_cabin)
         except ValueError:
             return False, 'Invalid age or cabin number', None
         
@@ -104,8 +101,7 @@ def validate_booking_data(form_data):
             'blood_test_time': blood_test_time,
             'blood_test_cabin': blood_test_cabin,
             'consultation_date': consultation_date,
-            'consultation_time': consultation_time,
-            'consultation_cabin': consultation_cabin
+            'consultation_time': consultation_time
         }
         
         return True, None, processed_data

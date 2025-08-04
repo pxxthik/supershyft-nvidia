@@ -23,7 +23,6 @@ def init_db():
             blood_test_cabin INTEGER,
             consultation_date TEXT,
             consultation_time TEXT,
-            consultation_cabin INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -54,15 +53,14 @@ def save_booking(booking_data):
         INSERT INTO bookings (
             name, email, age, gender, phone, 
             blood_test_date, blood_test_time, blood_test_cabin,
-            consultation_date, consultation_time, consultation_cabin
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            consultation_date, consultation_time
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         booking_data['name'], booking_data['email'], booking_data['age'], 
         booking_data['gender'], booking_data['phone'],
         booking_data['blood_test_date'], booking_data['blood_test_time'], 
         booking_data['blood_test_cabin'],
-        booking_data.get('consultation_date'), booking_data.get('consultation_time'), 
-        booking_data.get('consultation_cabin')
+        booking_data.get('consultation_date'), booking_data.get('consultation_time')
     ))
     
     conn.commit()
@@ -92,7 +90,7 @@ def get_all_bookings():
     cursor.execute('''
         SELECT id, name, email, age, gender, phone, 
                blood_test_date, blood_test_time, blood_test_cabin,
-               consultation_date, consultation_time, consultation_cabin,
+               consultation_date, consultation_time,
                created_at
         FROM bookings 
         ORDER BY created_at DESC

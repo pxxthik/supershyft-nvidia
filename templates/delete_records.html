@@ -49,12 +49,12 @@
                 </td>
                 <td>
                     {% if booking[9] %}
-                        {{ booking[9] }} {{ booking[10] }} (Cabin {{ booking[11] }})
+                        {{ booking[9] }} {{ booking[10] }}
                     {% else %}
                         Not booked
                     {% endif %}
                 </td>
-                <td>{{ booking[12] }}</td>
+                <td>{{ booking[11] }}</td>
                 <td>
                     <form method="POST" action="/admin/delete_booking/{{ booking[0] }}" style="display:inline;">
                         <button type="submit" onclick="return confirm('Delete booking for {{ booking[1] }}?')">Delete</button>
