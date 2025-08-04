@@ -11,8 +11,10 @@
     <div class="container">
         <div class="header">
             <img src="https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/01-nvidia-logo-vert-500x200-2c50-d@2x.png" alt="NVIDIA Logo" class="nvidia-logo">
-            <h1>Supershyft Health Camp Registration</h1>
-            <p>Book your Blood Test Appointment and schedule a Consultation with our Doctor And Nutrition Expert.</p>
+            <h1><b>Supershyft Health Camp Registration</b></h1>
+            <p>Book your <b>Blood Test Appointment</b> and schedule a <b>Consultation with our Doctor And Nutrition Expert.</b></p>
+
+            <b style="display: block; margin-top: 1rem;">Only available slots will be shown. Book early to secure your preferred time.</b>
         </div>
         
         <!-- Flash Messages -->
@@ -70,12 +72,11 @@
             
             <div class="info-box">
                 <strong>Blood Test Dates:</strong> All days of the week<br>
-                <strong>Time:</strong> 9:00 AM – 1:00 PM (15-min slots)<br>
-                <strong>Capacity:</strong> 4 cabins × 4 people = 16 people per slot
+                <strong>Time:</strong> 9:00 AM – 1:00 PM (15-min slots)
             </div>
             
             <div class="form-group">
-                <label for="blood_test_date">Select Date *</label>
+                <label for="blood_test_date">Select Blood Test Date *</label>
                 <div class="date-picker-container">
                     <div class="date-input" id="bloodTestDateInput" tabindex="0">
                         <span class="date-input-text placeholder">Choose a date</span>
@@ -105,7 +106,7 @@
             </div>
             
             <div class="form-group">
-                <label>Select Cabin *</label>
+                <label>Select Your Preferred Cabin for Blood Sample Collection – </label>
                 <div id="bloodTestCabins" class="loading">
                     Please select a date first
                 </div>
@@ -113,7 +114,7 @@
             </div>
             
             <div class="form-group">
-                <label>Available Time Slots *</label>
+                <label><b>Available</b> Blood Test Time Slots</label>
                 <div id="bloodTestSlots" class="loading">
                     Please select a cabin first
                 </div>
@@ -128,25 +129,25 @@
             
             <div class="info-box">
                 <strong>Available:</strong> All days of the week<br>
-                <strong>Time:</strong> 10:00 AM – 6:00 PM (30-min slots)<br>
-                <strong>Optional:</strong> You can book this after your blood test
+                <strong>Time:</strong> 10:00 AM – 6:00 PM<br>
+                <strong>Duration:</strong> 30 minutes
             </div>
             
             <div class="form-group">
-                <label>Do you want to book a Doctor & Nutrition Personalised consultations after your blood test?</label>
+                <label><b>Do you want to book a Doctor & Nutrition Personalised consultations after your blood test?</b></label>
                 <div class="radio-group">
                     <label class="radio-option">
-                        <input type="radio" name="want_consultation" value="yes"> Yes, book consultation
+                        <input type="radio" name="want_consultation" value="yes"> Yes
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="want_consultation" value="no" checked> No, just blood test
+                        <input type="radio" name="want_consultation" value="no" checked> No, Not Required
                     </label>
                 </div>
             </div>
             
             <div id="consultationSection" style="display: none;">
                 <div class="form-group">
-                    <label for="consultation_date">Select Consultation Date</label>
+                    <label for="consultation_date"><b>Date for personalised consultations</b></label>
                     <div class="date-picker-container">
                         <div class="date-input" id="consultationDateInput" tabindex="0">
                             <span class="date-input-text placeholder">Choose a date</span>
@@ -184,7 +185,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Available Time Slots</label>
+                    <label><b>Available</b> Time Slots for Personalised Consultations</label>
                     <div id="consultationSlots" class="loading">
                         Please select a cabin first
                     </div>
