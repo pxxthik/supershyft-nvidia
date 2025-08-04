@@ -1,6 +1,7 @@
 # app.py - Main Flask application with modular structure
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from datetime import datetime, timedelta
 
 # Import our modules
 from config import SECRET_KEY, ADMIN_PASSWORD
@@ -15,6 +16,32 @@ app.secret_key = SECRET_KEY
 
 # Initialize booking manager
 booking_manager = BookingManager()
+
+
+def validate_blood_test_date(date_str):
+    """Validate if the date is within allowed blood test range (19th-22nd August 2025)"""
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # Check if date is 19th-22nd August 2025
+        if date_obj.year == 2025 and date_obj.month == 8 and 19 <= date_obj.day <= 22:
+            return True
+        return False
+    except ValueError:
+        return False
+
+
+def validate_consultation_date(date_str):
+    """Validate if the date is within allowed consultation range (25th-29th August 2025, excluding 27th)"""
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # Check if date is 25th-29th August 2025, excluding 27th (holiday)
+        if date_obj.year == 2025 and date_obj.month == 8 and 25 <= date_obj.day <= 29 and date_obj.day != 27:
+            return True
+        return False
+    except ValueError:
+        return False
 
 
 # Main Routes
@@ -41,8 +68,14 @@ def booking_success(booking_id):
 def get_blood_test_cabins():
     """API endpoint to get available cabins for blood tests"""
     date_param = request.args.get('date')
+    date_param = str((datetime.strptime(date_param, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d'))
+
     if not date_param:
         return jsonify({'error': 'Date parameter is required'})
+    
+    # Validate blood test date
+    if not validate_blood_test_date(date_param):
+        return jsonify({'error': 'Invalid date. Blood tests are only available from 19th-22nd August 2025'})
     
     cabin_availability = booking_manager.blood_test_service.get_cabin_availability(date_param)
     
@@ -56,10 +89,15 @@ def get_blood_test_cabins():
 def get_blood_test_slots():
     """API endpoint to get available time slots for a specific blood test cabin"""
     date_param = request.args.get('date')
+    date_param = str((datetime.strptime(date_param, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d'))
     cabin_param = request.args.get('cabin')
     
     if not date_param or not cabin_param:
         return jsonify({'error': 'Date and cabin parameters are required'})
+    
+    # Validate blood test date
+    if not validate_blood_test_date(date_param):
+        return jsonify({'error': 'Invalid date. Blood tests are only available from 19th-22nd August 2025'})
     
     try:
         cabin = int(cabin_param)
@@ -80,9 +118,14 @@ def get_blood_test_slots():
 def get_consultation_slots():
     """API endpoint to get available time slots for consultations"""
     date_param = request.args.get('date')
+    date_param = str((datetime.strptime(date_param, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d'))
     
     if not date_param:
         return jsonify({'error': 'Date parameter is required'})
+    
+    # Validate consultation date
+    if not validate_consultation_date(date_param):
+        return jsonify({'error': 'Invalid date. Consultations are only available from 25th-29th August 2025 (excluding 27th - Holiday)'})
     
     available_slots = booking_manager.consultation_service.get_available_slots(date_param)
     
@@ -102,6 +145,16 @@ def submit_booking():
         
         if not is_valid:
             flash(error_message)
+            return redirect(url_for('index'))
+        
+        # Additional date validation for blood test
+        if not validate_blood_test_date(booking_data['blood_test_date']):
+            flash('Invalid blood test date. Blood tests are only available from 19th-22nd August 2025.')
+            return redirect(url_for('index'))
+        
+        # Additional date validation for consultation (if selected)
+        if booking_data.get('consultation_date') and not validate_consultation_date(booking_data['consultation_date']):
+            flash('Invalid consultation date. Consultations are only available from 25th-29th August 2025 (excluding 27th - Holiday).')
             return redirect(url_for('index'))
         
         # Check if selected slots are still available

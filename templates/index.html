@@ -12,7 +12,7 @@
         <div class="header">
             <img src="{{ url_for('static', filename='assets/company-logo.svg') }}" alt="NVIDIA Logo" class="nvidia-logo">
             <h1><b>Fitnastic Health Camp Registration</b></h1>
-            <p>Book your <b>Blood Test Appointment</b> and Schedule your <b>Consultation with our Doctors & Nutrition Consultations.</b></p>
+            <p>Book your <b>Blood Test Appointment</b> and Schedule your <b>Consultation with our Doctors & Nutrition consultations.</b></p>
 
             <b style="display: block; margin-top: 1rem;">Only available slots will be shown. Book early to secure your preferred time.</b>
         </div>
@@ -192,7 +192,7 @@
     </div>
     
     <script>
-    // Modern Date Picker Class
+    // Modern Date Picker Class with Custom Date Restrictions
     class ModernDatePicker {
         constructor(inputId, pickerId, hiddenInputId, options = {}) {
             this.input = document.getElementById(inputId);
@@ -331,6 +331,30 @@
             
             if (this.options.disableWeekends && (date.getDay() === 0 || date.getDay() === 6)) {
                 return true;
+            }
+            
+            // Blood test date restrictions (19th-22nd August 2025)
+            if (this.hiddenInput && this.hiddenInput.id === 'blood_test_date') {
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+                const day = date.getDate();
+                
+                if (year === 2025 && month === 8) {
+                    return !(day >= 19 && day <= 22);
+                }
+                return true; // Disable all other dates
+            }
+            
+            // Consultation date restrictions (25th-29th August 2025, excluding 27th)
+            if (this.hiddenInput && this.hiddenInput.id === 'consultation_date') {
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+                const day = date.getDate();
+                
+                if (year === 2025 && month === 8) {
+                    return !(day >= 25 && day <= 29 && day !== 27);
+                }
+                return true; // Disable all other dates
             }
             
             return false;
