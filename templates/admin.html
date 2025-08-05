@@ -7,6 +7,8 @@
     <title>Admin Panel - Supershyft Health Camp</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+    <!-- SheetJS library for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -18,9 +20,9 @@
                     <i class="fas fa-plus" style="margin-right: 8px;"></i>
                     New Booking
                 </a>
-                <button class="btn btn-success export-btn" onclick="exportToCSV()">
-                    <i class="fas fa-download" style="margin-right: 8px;"></i>
-                    Export CSV
+                <button class="btn btn-success export-btn" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel" style="margin-right: 8px;"></i>
+                    Export Excel
                 </button>
                 <a href="/admin/logout" class="btn btn-secondary">
                     <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
@@ -381,35 +383,75 @@
             document.getElementById('lastUpdated').textContent = timeString;
         }
 
-        function exportToCSV() {
+        function exportToExcel() {
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            
+            // Define headers
             const headers = [
                 'ID', 'Name', 'Email', 'Age', 'Gender', 'Phone',
                 'Blood Test Date', 'Blood Test Time', 'Blood Test Cabin',
-                'Consultation Date', 'Consultation Time',
-                'Created At'
+                'Consultation Date', 'Consultation Time', 'Created At'
             ];
 
-            let csvContent = headers.join(',') + '\n';
-
+            // Prepare data with headers
+            const data = [headers];
+            
+            // Add booking data
             filteredBookings.forEach(booking => {
                 const row = booking.map(field => {
-                    // Handle null/undefined values and escape commas
-                    const value = field || '';
-                    return `"${value.toString().replace(/"/g, '""')}"`;
+                    // Handle null/undefined values
+                    return field || '';
                 });
-                csvContent += row.join(',') + '\n';
+                data.push(row);
             });
 
-            // Create and download file
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `supershyft-bookings-${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Create worksheet from data
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // Set column widths for better formatting
+            const colWidths = [
+                { wch: 8 },   // ID
+                { wch: 20 },  // Name
+                { wch: 25 },  // Email
+                { wch: 8 },   // Age
+                { wch: 10 },  // Gender
+                { wch: 15 },  // Phone
+                { wch: 15 },  // Blood Test Date
+                { wch: 15 },  // Blood Test Time
+                { wch: 15 },  // Blood Test Cabin
+                { wch: 18 },  // Consultation Date
+                { wch: 18 },  // Consultation Time
+                { wch: 18 }   // Created At
+            ];
+            ws['!cols'] = colWidths;
+
+            // Style the header row
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "4472C4" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+
+            // Apply header styling
+            for (let i = 0; i < headers.length; i++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: 0, c: i });
+                if (!ws[cellAddress]) continue;
+                ws[cellAddress].s = headerStyle;
+            }
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Bookings");
+
+            // Generate filename with current date
+            const today = new Date().toISOString().split('T')[0];
+            const filename = `supershyft-bookings-${today}.xlsx`;
+
+            // Save the file
+            XLSX.writeFile(wb, filename);
+
+            // Show success message (optional)
+            console.log(`Excel file exported: ${filename}`);
         }
 
         // Refresh data every 30 seconds
