@@ -1,4 +1,4 @@
-# database.py - Database initialization and operations
+# database.py - Database initialization and operations with location support
 
 import sqlite3
 from config import DATABASE_NAME
@@ -9,7 +9,7 @@ def init_db():
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
     
-    # Create bookings table
+    # Create bookings table with location field
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,6 +18,7 @@ def init_db():
             age INTEGER NOT NULL,
             gender TEXT NOT NULL,
             phone TEXT NOT NULL,
+            location TEXT NOT NULL,
             blood_test_date TEXT,
             blood_test_time TEXT,
             blood_test_cabin INTEGER,
@@ -26,6 +27,13 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Check if location column exists in existing table, if not add it
+    cursor.execute("PRAGMA table_info(bookings)")
+    columns = [column[1] for column in cursor.fetchall()]
+    
+    if 'location' not in columns:
+        cursor.execute('ALTER TABLE bookings ADD COLUMN location TEXT DEFAULT "bangalore"')
     
     conn.commit()
     conn.close()
@@ -51,13 +59,13 @@ def save_booking(booking_data):
     
     cursor.execute('''
         INSERT INTO bookings (
-            name, email, age, gender, phone, 
+            name, email, age, gender, phone, location,
             blood_test_date, blood_test_time, blood_test_cabin,
             consultation_date, consultation_time
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         booking_data['name'], booking_data['email'], booking_data['age'], 
-        booking_data['gender'], booking_data['phone'],
+        booking_data['gender'], booking_data['phone'], booking_data['location'],
         booking_data['blood_test_date'], booking_data['blood_test_time'], 
         booking_data['blood_test_cabin'],
         booking_data.get('consultation_date'), booking_data.get('consultation_time')
@@ -88,7 +96,7 @@ def get_all_bookings():
     cursor = conn.cursor()
     
     cursor.execute('''
-        SELECT id, name, email, age, gender, phone, 
+        SELECT id, name, email, age, gender, phone, location,
                blood_test_date, blood_test_time, blood_test_cabin,
                consultation_date, consultation_time,
                created_at

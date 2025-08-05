@@ -38,6 +38,10 @@
                     <span class="detail-label">Phone:</span>
                     <span class="detail-value">{{ booking[5] }}</span>
                 </div>
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{ booking[6] }}</span>
+                </div>
             </div>
             
             <div class="booking-details">
@@ -47,19 +51,19 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Date:</span>
-                    <span class="detail-value">{{ booking[6] }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Time:</span>
                     <span class="detail-value">{{ booking[7] }}</span>
                 </div>
                 <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ booking[8] }}</span>
+                </div>
+                <div class="detail-row">
                     <span class="detail-label">Cabin:</span>
-                    <span class="detail-value">Cabin {{ booking[8] }}</span>
+                    <span class="detail-value">Cabin {{ booking[9] }}</span>
                 </div>
             </div>
             
-            {% if booking[9] and booking[10] %}
+            {% if booking[10] and booking[11] %}
             <div class="booking-details">
                 <div class="section-title">
                     <i class="fas fa-stethoscope"></i>
@@ -67,11 +71,11 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Date:</span>
-                    <span class="detail-value">{{ booking[9] }}</span>
+                    <span class="detail-value">{{ booking[10] }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Time:</span>
-                    <span class="detail-value">{{ booking[10] }}</span>
+                    <span class="detail-value">{{ booking[11] }}</span>
                 </div>
             </div>
             {% endif %}

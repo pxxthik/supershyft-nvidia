@@ -1,9 +1,10 @@
-# utils.py - Utility functions for date and time operations
+# utils.py - Utility functions for date and time operations with location support
 
 from datetime import datetime, timedelta, date
 from typing import List
 from functools import wraps
 from flask import session, redirect, url_for
+from config import LOCATIONS
 
 
 def admin_required(f):
@@ -51,7 +52,7 @@ def generate_time_slots(start_time: str, end_time: str, duration: int) -> List[s
 
 def validate_booking_data(form_data):
     """
-    Validate booking form data
+    Validate booking form data with location support
     
     Returns:
         tuple: (is_valid: bool, error_message: str or None, processed_data: dict)
@@ -63,6 +64,7 @@ def validate_booking_data(form_data):
         age = form_data.get('age')
         gender = form_data.get('gender')
         phone = form_data.get('phone')
+        location = form_data.get('location')
         blood_test_date = form_data.get('blood_test_date')
         blood_test_time = form_data.get('blood_test_time')
         blood_test_cabin = form_data.get('blood_test_cabin')
@@ -72,8 +74,12 @@ def validate_booking_data(form_data):
         consultation_time = form_data.get('consultation_time')
         
         # Validate required fields
-        if not all([name, email, age, gender, phone, blood_test_date, blood_test_time, blood_test_cabin]):
+        if not all([name, email, age, gender, phone, location, blood_test_date, blood_test_time, blood_test_cabin]):
             return False, 'Please fill in all required fields', None
+        
+        # Validate location
+        if location not in LOCATIONS:
+            return False, 'Invalid location selected', None
         
         # Convert and validate numeric fields
         try:
@@ -97,6 +103,7 @@ def validate_booking_data(form_data):
             'age': age,
             'gender': gender,
             'phone': phone,
+            'location': location,
             'blood_test_date': blood_test_date,
             'blood_test_time': blood_test_time,
             'blood_test_cabin': blood_test_cabin,

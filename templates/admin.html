@@ -141,6 +141,7 @@
                             <th>Age</th>
                             <th>Gender</th>
                             <th>Phone</th>
+                            <th>Location</th>
                             <th>Blood Test Date</th>
                             <th>Blood Test Time</th>
                             <th>BT Cabin</th>
@@ -160,44 +161,45 @@
                                 <span class="gender-badge {{ booking[4] }}">{{ booking[4]|title }}</span>
                             </td>
                             <td>{{ booking[5] }}</td>
+                            <td>{{ booking[6] }}</td>
                             <td>
-                                {% if booking[6] %}
-                                <strong>{{ booking[6] }}</strong>
+                                {% if booking[7] %}
+                                <strong>{{ booking[7] }}</strong>
                                 {% else %}
                                 <span class="no-consultation">Not scheduled</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if booking[7] %}
-                                {{ booking[7] }}
-                                {% else %}
-                                <span class="no-consultation">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
                                 {% if booking[8] %}
-                                <span class="cabin-badge">Cabin {{ booking[8] }}</span>
+                                {{ booking[8] }}
                                 {% else %}
                                 <span class="no-consultation">-</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if booking[9] %}
-                                <strong>{{ booking[9] }}</strong>
-                                {% else %}
-                                <span class="no-consultation">Not booked</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if booking[10] %}
-                                {{ booking[10] }}
+                                <span class="cabin-badge">Cabin {{ booking[9] }}</span>
                                 {% else %}
                                 <span class="no-consultation">-</span>
                                 {% endif %}
                             </td>
                             <td>
+                                {% if booking[10] %}
+                                <strong>{{ booking[10] }}</strong>
+                                {% else %}
+                                <span class="no-consultation">Not booked</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if booking[11] %}
-                                {{ booking[11][:16] }}
+                                {{ booking[11] }}
+                                {% else %}
+                                <span class="no-consultation">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking[12] %}
+                                {{ booking[12][:16] }}
                                 {% else %}
                                 <span class="no-consultation">-</span>
                                 {% endif %}
