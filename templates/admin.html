@@ -13,23 +13,39 @@
 
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-bar" style="margin-right: 12px;"></i>Admin Panel</h1>
-            <div>
-                <a href="/" class="btn">
-                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
-                    New Booking
-                </a>
-                <button class="btn btn-success export-btn" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel" style="margin-right: 8px;"></i>
-                    Export Excel
+        <div class="header"
+            style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd;">
+            <h1
+                style="display: flex; align-items: center; font-size: 1.8rem; margin: 0; color: #333; flex: 1 1 auto; min-width: 200px;">
+                <i class="fas fa-chart-bar" style="margin-right: 12px;"></i>Admin Panel
+            </h1>
+            <div
+                style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; flex: 1 1 auto; justify-content: flex-end; min-width: 250px; margin-top: 8px;">
+
+                <div class="location-filter-header"
+                    style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <label for="locationFilter" style="font-weight: bold; color: #333;">Location:</label>
+                    <select id="locationFilter"
+                        style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 5px; background: white; min-width: 150px; font-size: 0.95rem;">
+                        <option value="">All Locations</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}">{{ location|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button class="btn btn-success export-btn" onclick="exportToExcel()"
+                    style="display: flex; align-items: center; background-color: #28a745; color: white; border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; font-size: 0.95rem;">
+                    <i class="fas fa-file-excel" style="margin-right: 8px;"></i>Export Excel
                 </button>
-                <a href="/admin/logout" class="btn btn-secondary">
-                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
-                    Logout
+
+                <a href="/admin/logout" class="btn btn-secondary"
+                    style="display: flex; align-items: center; background-color: #6c757d; color: white; padding: 8px 14px; border-radius: 5px; text-decoration: none; font-size: 0.95rem;">
+                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>Logout
                 </a>
             </div>
         </div>
+
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -37,11 +53,11 @@
                 <div class="stat-label">Total Bookings</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="withConsultation">{{ bookings|selectattr('9')|list|length }}</div>
+                <div class="stat-number" id="withConsultation">{{ bookings|selectattr('10')|list|length }}</div>
                 <div class="stat-label">With Consultation</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="bloodTestOnly">{{ bookings|rejectattr('9')|list|length }}</div>
+                <div class="stat-number" id="bloodTestOnly">{{ bookings|rejectattr('10')|list|length }}</div>
                 <div class="stat-label">Blood Test Only</div>
             </div>
             <div class="stat-card">
@@ -161,7 +177,7 @@
                                 <span class="gender-badge {{ booking[4] }}">{{ booking[4]|title }}</span>
                             </td>
                             <td>{{ booking[5] }}</td>
-                            <td>{{ booking[6] }}</td>
+                            <td><strong>{{ booking[6]|title }}</strong></td>
                             <td>
                                 {% if booking[7] %}
                                 <strong>{{ booking[7] }}</strong>
@@ -237,6 +253,11 @@
 
             // Add real-time search
             document.getElementById('searchName').addEventListener('input', applyFilters);
+
+            // Add automatic location filter
+            document.getElementById('locationFilter').addEventListener('change', function () {
+                applyFilters();
+            });
         });
 
         function applyFilters() {
@@ -246,6 +267,7 @@
             const filterConsultation = document.getElementById('filterConsultation').value;
             const filterCabin = document.getElementById('filterCabin').value;
             const sortBy = document.getElementById('sortBy').value;
+            const locationFilter = document.getElementById('locationFilter').value;
 
             filteredBookings = allBookings.filter(booking => {
                 // Search in name, email, phone
@@ -256,20 +278,23 @@
                 const matchesGender = !filterGender || booking[4] === filterGender;
 
                 // Blood test date filter
-                const matchesBloodDate = !filterBloodDate || booking[6] === filterBloodDate;
+                const matchesBloodDate = !filterBloodDate || booking[7] === filterBloodDate;
 
                 // Consultation filter
                 let matchesConsultation = true;
                 if (filterConsultation === 'yes') {
-                    matchesConsultation = booking[9] && booking[10]; // Has consultation
+                    matchesConsultation = booking[10] && booking[11]; // Has consultation
                 } else if (filterConsultation === 'no') {
-                    matchesConsultation = !booking[9] || !booking[10]; // No consultation
+                    matchesConsultation = !booking[10] || !booking[11]; // No consultation
                 }
 
                 // Cabin filter
-                const matchesCabin = !filterCabin || booking[8] == filterCabin;
+                const matchesCabin = !filterCabin || booking[9] == filterCabin;
 
-                return matchesSearch && matchesGender && matchesBloodDate && matchesConsultation && matchesCabin;
+                // Location filter
+                const matchesLocation = !locationFilter || booking[6] === locationFilter;
+
+                return matchesSearch && matchesGender && matchesBloodDate && matchesConsultation && matchesCabin && matchesLocation;
             });
 
             // Sort results
@@ -278,9 +303,9 @@
                     case 'name':
                         return a[1].localeCompare(b[1]);
                     case 'date':
-                        return (a[6] || '').localeCompare(b[6] || '');
+                        return (a[7] || '').localeCompare(b[7] || '');
                     case 'created':
-                        return (a[11] || '').localeCompare(b[11] || '');
+                        return (a[12] || '').localeCompare(b[12] || '');
                     default: // id
                         return a[0] - b[0];
                 }
@@ -317,12 +342,13 @@
             const row = document.createElement('tr');
 
             const genderClass = booking[4] || '';
-            const bloodTestDate = booking[6] ? `<strong>${booking[6]}</strong>` : '<span class="no-consultation">Not scheduled</span>';
-            const bloodTestTime = booking[7] || '<span class="no-consultation">-</span>';
-            const bloodTestCabin = booking[8] ? `<span class="cabin-badge">Cabin ${booking[8]}</span>` : '<span class="no-consultation">-</span>';
-            const consultationDate = booking[9] ? `<strong>${booking[9]}</strong>` : '<span class="no-consultation">Not booked</span>';
-            const consultationTime = booking[10] || '<span class="no-consultation">-</span>';
-            const createdAt = booking[11] ? booking[11].substring(0, 16) : '<span class="no-consultation">-</span>';
+            const locationName = booking[6] ? booking[6].charAt(0).toUpperCase() + booking[6].slice(1) : '';
+            const bloodTestDate = booking[7] ? `<strong>${booking[7]}</strong>` : '<span class="no-consultation">Not scheduled</span>';
+            const bloodTestTime = booking[8] || '<span class="no-consultation">-</span>';
+            const bloodTestCabin = booking[9] ? `<span class="cabin-badge">Cabin ${booking[9]}</span>` : '<span class="no-consultation">-</span>';
+            const consultationDate = booking[10] ? `<strong>${booking[10]}</strong>` : '<span class="no-consultation">Not booked</span>';
+            const consultationTime = booking[11] || '<span class="no-consultation">-</span>';
+            const createdAt = booking[12] ? booking[12].substring(0, 16) : '<span class="no-consultation">-</span>';
 
             row.innerHTML = `
                 <td><span class="booking-id">#${booking[0]}</span></td>
@@ -331,6 +357,7 @@
                 <td>${booking[3]}</td>
                 <td><span class="gender-badge ${genderClass}">${(booking[4] || '').charAt(0).toUpperCase() + (booking[4] || '').slice(1)}</span></td>
                 <td>${booking[5]}</td>
+                <td><strong>${locationName}</strong></td>
                 <td>${bloodTestDate}</td>
                 <td>${bloodTestTime}</td>
                 <td>${bloodTestCabin}</td>
@@ -345,7 +372,7 @@
         function updateStats() {
             document.getElementById('totalBookings').textContent = filteredBookings.length;
 
-            const withConsultation = filteredBookings.filter(b => b[9] && b[10]).length;
+            const withConsultation = filteredBookings.filter(b => b[10] && b[11]).length;
             document.getElementById('withConsultation').textContent = withConsultation;
 
             const bloodTestOnly = filteredBookings.length - withConsultation;
@@ -365,6 +392,7 @@
             document.getElementById('filterConsultation').value = '';
             document.getElementById('filterCabin').value = '';
             document.getElementById('sortBy').value = 'id';
+            document.getElementById('locationFilter').value = '';
 
             filteredBookings = [...allBookings];
             updateTable();
@@ -374,7 +402,7 @@
         function calculateTodayBookings() {
             const today = new Date().toISOString().split('T')[0];
             const todayBookings = allBookings.filter(booking =>
-                booking[6] === today || booking[9] === today
+                booking[7] === today || booking[10] === today
             ).length;
             document.getElementById('todayBookings').textContent = todayBookings;
         }
@@ -388,7 +416,7 @@
         function exportToExcel() {
             // Create workbook and worksheet
             const wb = XLSX.utils.book_new();
-            
+
             // Define headers
             const headers = [
                 'ID', 'Name', 'Email', 'Age', 'Gender', 'Phone', 'Location',
@@ -398,7 +426,7 @@
 
             // Prepare data with headers
             const data = [headers];
-            
+
             // Add booking data
             filteredBookings.forEach(booking => {
                 const row = booking.map(field => {
@@ -446,9 +474,11 @@
             // Add worksheet to workbook
             XLSX.utils.book_append_sheet(wb, ws, "Bookings");
 
-            // Generate filename with current date
+            // Generate filename with current date and location
             const today = new Date().toISOString().split('T')[0];
-            const filename = `supershyft-bookings-${today}.xlsx`;
+            const selectedLocation = document.getElementById('locationFilter').value;
+            const locationSuffix = selectedLocation ? `-${selectedLocation}` : '';
+            const filename = `supershyft-bookings-${today}${locationSuffix}.xlsx`;
 
             // Save the file
             XLSX.writeFile(wb, filename);
