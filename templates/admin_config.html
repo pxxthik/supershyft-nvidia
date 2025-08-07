@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Configuration - Supershyft Health Camp</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+    <style>
+        .config-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e8e8e8;
+        }
+        .config-section h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #007AFF;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .config-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .config-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .array-input {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .array-input input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 13px;
+        }
+        .btn-add-item {
+            background: #28a745;
+            padding: 12px 12px;
+            font-size: 12px;
+        }
+        .btn-remove-item {
+            background: #dc3545;
+            padding: 4px 8px;
+            font-size: 10px;
+            min-width: auto;
+        }
+        .btn-remove-item:hover {
+            background: #c82333;
+        }
+        .danger-zone {
+            background: white;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .danger-zone h5 {
+            color: #dc3545;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .danger-zone p {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .btn-lg {
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+        .alert {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .alert-dismissible {
+            position: relative;
+            padding-right: 40px;
+        }
+        .btn-close {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .btn-close:hover {
+            opacity: 1;
+        }
+        .info-alert {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+            border-left: 4px solid #2196f3;
+            margin-top: 1rem;
+        }
+        @media (max-width: 768px) {
+            .config-grid,
+            .config-grid-2,
+            .config-grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .form-actions {
+                justify-content: center;
+            }
+            .danger-zone {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header matching admin.html style -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-sliders-h" style="margin-right: 12px;"></i>System Configuration
+            </h1>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <a href="/admin" class="btn">
+                    <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>Admin Panel
+                </a>
+                <a href="/admin/logout" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible">
+                        <i class="fas fa-check-circle"></i> {{ message }}
+                        <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" id="configForm">
+            <!-- Location Configuration -->
+            <div class="config-section">
+                <h4><i class="fas fa-map-marker-alt"></i> Location Configuration</h4>
+                <div class="form-group">
+                    <label for="locations" class="form-label">Available Locations</label>
+                    <div id="locations-container">
+                        {% for location in config.locations %}
+                        <div class="array-input">
+                            <input type="text" name="locations[]" value="{{ location }}" required>
+                            <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-add-item" onclick="addLocationInput()">
+                        <i class="fas fa-plus"></i> Add Location
+                    </button>
+                </div>
+            </div>
+
+            <!-- Blood Test Configuration -->
+            <div class="config-section">
+                <h4><i class="fas fa-vial"></i> Blood Test Configuration</h4>
+                
+                <div class="config-grid-2">
+                    <div class="form-group">
+                        <label for="blood_test_start_time">Start Time</label>
+                        <input type="time" name="blood_test_start_time" value="{{ config.blood_test_start_time }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blood_test_end_time">End Time</label>
+                        <input type="time" name="blood_test_end_time" value="{{ config.blood_test_end_time }}" required>
+                    </div>
+                </div>
+
+                <div class="config-grid-3">
+                    <div class="form-group">
+                        <label for="slot_duration_blood">Slot Duration (minutes)</label>
+                        <input type="number" name="slot_duration_blood" value="{{ config.slot_duration_blood }}" min="5" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blood_test_cabins_count">Number of Cabins</label>
+                        <input type="number" name="blood_test_cabins_count" value="{{ config.blood_test_cabins_count }}" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="people_per_blood_cabin">People per Cabin</label>
+                        <input type="number" name="people_per_blood_cabin" value="{{ config.people_per_blood_cabin }}" min="1" max="10" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="blood_test_allowed_dates">Allowed Dates</label>
+                    <div id="blood-dates-container">
+                        {% for date in config.blood_test_allowed_dates %}
+                        <div class="array-input">
+                            <input type="date" name="blood_test_allowed_dates[]" value="{{ date }}" required>
+                            <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-add-item" onclick="addBloodDateInput()">
+                        <i class="fas fa-plus"></i> Add Date
+                    </button>
+                </div>
+            </div>
+
+            <!-- Consultation Configuration -->
+            <div class="config-section">
+                <h4><i class="fas fa-user-md"></i> Consultation Configuration</h4>
+                
+                <div class="config-grid-2">
+                    <div class="form-group">
+                        <label for="consultation_start_time">Start Time</label>
+                        <input type="time" name="consultation_start_time" value="{{ config.consultation_start_time }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="consultation_end_time">End Time</label>
+                        <input type="time" name="consultation_end_time" value="{{ config.consultation_end_time }}" required>
+                    </div>
+                </div>
+
+                <div class="config-grid-3">
+                    <div class="form-group">
+                        <label for="slot_duration_consultation">Slot Duration (minutes)</label>
+                        <input type="number" name="slot_duration_consultation" value="{{ config.slot_duration_consultation }}" min="15" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="consultation_cabins_count">Number of Cabins</label>
+                        <input type="number" name="consultation_cabins_count" value="{{ config.consultation_cabins_count }}" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="people_per_consultation_cabin">People per Cabin</label>
+                        <input type="number" name="people_per_consultation_cabin" value="{{ config.people_per_consultation_cabin }}" min="1" max="5" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="consultation_allowed_dates">Allowed Dates</label>
+                    <div id="consultation-dates-container">
+                        {% for date in config.consultation_allowed_dates %}
+                        <div class="array-input">
+                            <input type="date" name="consultation_allowed_dates[]" value="{{ date }}" required>
+                            <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-add-item" onclick="addConsultationDateInput()">
+                        <i class="fas fa-plus"></i> Add Date
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-lg">
+                    <i class="fas fa-save"></i> Save Configuration
+                </button>
+                <a href="/admin" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Back to Admin Panel
+                </a>
+            </div>
+        </form>
+
+        <!-- Danger Zone -->
+        <div class="danger-zone">
+            <h5><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
+            <p>This will reset all configuration to default values. This action cannot be undone.</p>
+            <a href="/admin/config/reset" class="btn btn-danger" 
+               onclick="return confirm('Are you sure you want to reset all configuration to defaults? This cannot be undone.')">
+                <i class="fas fa-undo"></i> Reset to Defaults
+            </a>
+        </div>
+
+        <!-- Information Alert -->
+        <div class="alert info-alert">
+            <i class="fas fa-info-circle"></i>
+            <strong>Note:</strong> Changes to configuration will take effect immediately. Make sure to test the booking system after making changes.
+        </div>
+    </div>
+
+    <script>
+        function addLocationInput() {
+            const container = document.getElementById('locations-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="text" name="locations[]" required>
+                <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addBloodDateInput() {
+            const container = document.getElementById('blood-dates-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="date" name="blood_test_allowed_dates[]" required>
+                <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addConsultationDateInput() {
+            const container = document.getElementById('consultation-dates-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="date" name="consultation_allowed_dates[]" required>
+                <button type="button" class="btn btn-remove-item" onclick="removeArrayItem(this)">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeArrayItem(button) {
+            const container = button.parentElement.parentElement;
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('At least one item is required');
+            }
+        }
+
+        // Form validation
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            // Validate that start times are before end times
+            const bloodStart = document.querySelector('[name="blood_test_start_time"]').value;
+            const bloodEnd = document.querySelector('[name="blood_test_end_time"]').value;
+            const consultationStart = document.querySelector('[name="consultation_start_time"]').value;
+            const consultationEnd = document.querySelector('[name="consultation_end_time"]').value;
+
+            if (bloodStart >= bloodEnd) {
+                alert('Blood test start time must be before end time');
+                e.preventDefault();
+                return;
+            }
+
+            if (consultationStart >= consultationEnd) {
+                alert('Consultation start time must be before end time');
+                e.preventDefault();
+                return;
+            }
+
+            // Validate that at least one location exists
+            const locations = document.querySelectorAll('[name="locations[]"]');
+            if (locations.length === 0 || !Array.from(locations).some(input => input.value.trim())) {
+                alert('At least one location is required');
+                e.preventDefault();
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

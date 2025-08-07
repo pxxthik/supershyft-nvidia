@@ -1,4 +1,4 @@
-# app.py - Main Flask application with modular structure and location support
+# app.py - Main Flask application with modular structure, location support, and dynamic configuration
 
 from flask import (
     Flask,
@@ -13,7 +13,9 @@ from flask import (
 from datetime import datetime, timedelta
 
 # Import our modules
-from config import SECRET_KEY, ADMIN_PASSWORD, LOCATIONS, BLOOD_TEST_ALLOWED_DATES, CONSULTATION_ALLOWED_DATES
+from config import (
+    SECRET_KEY, ADMIN_PASSWORD, config_manager, reload_config
+)
 from database import (
     init_db,
     save_booking,
@@ -23,6 +25,7 @@ from database import (
 )
 from utils import admin_required, validate_booking_data
 from booking_service import BookingManager
+from config_validator import ConfigValidator
 
 
 # Initialize Flask app
@@ -33,14 +36,24 @@ app.secret_key = SECRET_KEY
 booking_manager = BookingManager()
 
 
+def get_current_config():
+    """Get current configuration values (refreshed)"""
+    reload_config()
+    return {
+        'locations': config_manager.get('locations'),
+        'blood_test_allowed_dates': config_manager.get('blood_test_allowed_dates'),
+        'consultation_allowed_dates': config_manager.get('consultation_allowed_dates')
+    }
+
+
 def validate_blood_test_date(date_str):
     """Validate if the date is within the allowed blood test dates"""
     try:
         # Check if the format is valid
         datetime.strptime(date_str, "%Y-%m-%d")
-
-        # Check if the date is in the allowed list
-        return date_str in BLOOD_TEST_ALLOWED_DATES
+        # Get current allowed dates
+        current_dates = config_manager.get('blood_test_allowed_dates')
+        return date_str in current_dates
     except ValueError:
         return False
 
@@ -50,31 +63,37 @@ def validate_consultation_date(date_str):
     try:
         # Check if the format is valid
         datetime.strptime(date_str, "%Y-%m-%d")
-
-        # Check if the date is in the allowed list
-        return date_str in CONSULTATION_ALLOWED_DATES
+        # Get current allowed dates
+        current_dates = config_manager.get('consultation_allowed_dates')
+        return date_str in current_dates
     except ValueError:
         return False
-
-@app.route("/allowed_blood_test_dates")
-def get_allowed_blood_test_dates():
-    return jsonify({"allowed_dates": BLOOD_TEST_ALLOWED_DATES})
-
-@app.route("/allowed_consultation_dates")
-def get_allowed_consultation_dates():
-    return jsonify({"allowed_dates": CONSULTATION_ALLOWED_DATES})
 
 
 def validate_location(location):
     """Validate if the location is one of the allowed locations"""
-    return location in LOCATIONS
+    current_locations = config_manager.get('locations')
+    return location in current_locations
+
+
+@app.route("/allowed_blood_test_dates")
+def get_allowed_blood_test_dates():
+    current_dates = config_manager.get('blood_test_allowed_dates')
+    return jsonify({"allowed_dates": current_dates})
+
+
+@app.route("/allowed_consultation_dates")
+def get_allowed_consultation_dates():
+    current_dates = config_manager.get('consultation_allowed_dates')
+    return jsonify({"allowed_dates": current_dates})
 
 
 # Main Routes
 @app.route("/")
 def index():
     """Main registration form"""
-    return render_template("index.html", locations=LOCATIONS)
+    current_locations = config_manager.get('locations')
+    return render_template("index.html", locations=current_locations)
 
 
 @app.route("/booking_success/<int:booking_id>")
@@ -107,7 +126,7 @@ def get_blood_test_cabins():
     if not validate_blood_test_date(date_param):
         return jsonify(
             {
-                "error": "Invalid date. Blood tests are only available from 19th-22nd August 2025"
+                "error": "Invalid date. Please select from the available blood test dates"
             }
         )
 
@@ -139,7 +158,7 @@ def get_blood_test_slots():
     if not validate_blood_test_date(date_param):
         return jsonify(
             {
-                "error": "Invalid date. Blood tests are only available from 19th-22nd August 2025"
+                "error": "Invalid date. Please select from the available blood test dates"
             }
         )
 
@@ -179,7 +198,7 @@ def get_consultation_slots():
     if not validate_consultation_date(date_param):
         return jsonify(
             {
-                "error": "Invalid date. Consultations are only available from 25th-29th August 2025 (excluding 27th - Holiday)"
+                "error": "Invalid date. Please select from the available consultation dates"
             }
         )
 
@@ -212,18 +231,14 @@ def submit_booking():
 
         # Additional date validation for blood test
         if not validate_blood_test_date(booking_data["blood_test_date"]):
-            flash(
-                "Invalid blood test date. Blood tests are only available from 19th-22nd August 2025."
-            )
+            flash("Invalid blood test date. Please select from the available dates.")
             return redirect(url_for("index"))
 
         # Additional date validation for consultation (if selected)
         if booking_data.get("consultation_date") and not validate_consultation_date(
             booking_data["consultation_date"]
         ):
-            flash(
-                "Invalid consultation date. Consultations are only available from 25th-29th August 2025 (excluding 27th - Holiday)."
-            )
+            flash("Invalid consultation date. Please select from the available dates.")
             return redirect(url_for("index"))
 
         # Check if selected slots are still available
@@ -281,7 +296,8 @@ def admin_logout():
 def admin():
     """Admin panel to view all bookings"""
     bookings = get_all_bookings()
-    return render_template("admin.html", bookings=bookings, locations=LOCATIONS)
+    current_locations = config_manager.get('locations')
+    return render_template("admin.html", bookings=bookings, locations=current_locations)
 
 
 @app.route("/admin/delete_booking/<int:booking_id>", methods=["POST"])
@@ -312,7 +328,98 @@ def delete_records():
     return render_template("delete_records.html", bookings=bookings)
 
 
-# init db
+# Configuration Management Routes
+@app.route("/admin/config")
+@admin_required
+def admin_config():
+    """Admin configuration management page"""
+    config = config_manager.get_all()
+    return render_template("admin_config.html", config=config)
+
+
+@app.route("/admin/config", methods=["POST"])
+@admin_required
+def admin_config_save():
+    """Save configuration changes"""
+    try:
+        # Collect form data
+        config_updates = {}
+        
+        # Handle locations (array)
+        locations = request.form.getlist('locations[]')
+        locations = [loc.strip() for loc in locations if loc.strip()]
+        if not locations:
+            flash("At least one location is required")
+            return redirect(url_for("admin_config"))
+        config_updates['locations'] = locations
+        
+        # Handle blood test configuration
+        config_updates['blood_test_start_time'] = request.form.get('blood_test_start_time')
+        config_updates['blood_test_end_time'] = request.form.get('blood_test_end_time')
+        config_updates['slot_duration_blood'] = int(request.form.get('slot_duration_blood'))
+        config_updates['blood_test_cabins_count'] = int(request.form.get('blood_test_cabins_count'))
+        config_updates['people_per_blood_cabin'] = int(request.form.get('people_per_blood_cabin'))
+        
+        # Handle blood test allowed dates (array)
+        blood_dates = request.form.getlist('blood_test_allowed_dates[]')
+        blood_dates = [date.strip() for date in blood_dates if date.strip()]
+        if not blood_dates:
+            flash("At least one blood test date is required")
+            return redirect(url_for("admin_config"))
+        config_updates['blood_test_allowed_dates'] = blood_dates
+        
+        # Handle consultation configuration
+        config_updates['consultation_start_time'] = request.form.get('consultation_start_time')
+        config_updates['consultation_end_time'] = request.form.get('consultation_end_time')
+        config_updates['slot_duration_consultation'] = int(request.form.get('slot_duration_consultation'))
+        config_updates['consultation_cabins_count'] = int(request.form.get('consultation_cabins_count'))
+        config_updates['people_per_consultation_cabin'] = int(request.form.get('people_per_consultation_cabin'))
+        
+        # Handle consultation allowed dates (array)
+        consultation_dates = request.form.getlist('consultation_allowed_dates[]')
+        consultation_dates = [date.strip() for date in consultation_dates if date.strip()]
+        if not consultation_dates:
+            flash("At least one consultation date is required")
+            return redirect(url_for("admin_config"))
+        config_updates['consultation_allowed_dates'] = consultation_dates
+        
+        # Validate configuration using ConfigValidator
+        is_valid, validation_errors = ConfigValidator.validate_config(config_updates)
+        if not is_valid:
+            for error in validation_errors:
+                flash(f"Validation Error: {error}")
+            return redirect(url_for("admin_config"))
+        
+        # Update configuration
+        config_manager.update_multiple(config_updates)
+        
+        # Reload configuration in the application
+        reload_config()
+        
+        flash("Configuration updated successfully!")
+        return redirect(url_for("admin_config"))
+        
+    except ValueError as e:
+        flash(f"Invalid input: {str(e)}")
+        return redirect(url_for("admin_config"))
+    except Exception as e:
+        flash(f"Error saving configuration: {str(e)}")
+        return redirect(url_for("admin_config"))
+
+
+@app.route("/admin/config/reset")
+@admin_required
+def admin_config_reset():
+    """Reset configuration to defaults"""
+    try:
+        config_manager.reset_to_defaults()
+        reload_config()
+        flash("Configuration has been reset to default values!")
+    except Exception as e:
+        flash(f"Error resetting configuration: {str(e)}")
+    
+    return redirect(url_for("admin_config"))
+
 init_db()
 
 # Initialize database and run app

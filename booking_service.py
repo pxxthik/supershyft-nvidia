@@ -1,18 +1,13 @@
-# booking_service.py - Business logic for booking availability and management with location support
+# booking_service.py - Business logic for booking availability and management with dynamic configuration
 
 from typing import Dict, List
 from database import get_db_connection
 from utils import generate_time_slots, is_valid_date
-from config import (
-    BLOOD_TEST_START_TIME, BLOOD_TEST_END_TIME, SLOT_DURATION_BLOOD,
-    CONSULTATION_START_TIME, CONSULTATION_END_TIME, SLOT_DURATION_CONSULTATION,
-    BLOOD_TEST_CABINS_COUNT, CONSULTATION_CABINS_COUNT,
-    PEOPLE_PER_BLOOD_CABIN, PEOPLE_PER_CONSULTATION_CABIN
-)
+from config import config_manager
 
 
 class BloodTestService:
-    """Service class for blood test booking operations with location support"""
+    """Service class for blood test booking operations with dynamic configuration support"""
     
     @staticmethod
     def get_cabin_availability(date: str, location: str) -> Dict:
@@ -23,8 +18,15 @@ class BloodTestService:
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Get dynamic configuration values
+        start_time = config_manager.get('blood_test_start_time')
+        end_time = config_manager.get('blood_test_end_time')
+        slot_duration = config_manager.get('slot_duration_blood')
+        cabins_count = config_manager.get('blood_test_cabins_count')
+        people_per_cabin = config_manager.get('people_per_blood_cabin')
+        
         # Get total time slots available for the day
-        total_slots = len(generate_time_slots(BLOOD_TEST_START_TIME, BLOOD_TEST_END_TIME, SLOT_DURATION_BLOOD))
+        total_slots = len(generate_time_slots(start_time, end_time, slot_duration))
         
         # Get booked slots per cabin for specific location
         cursor.execute('''
@@ -38,9 +40,9 @@ class BloodTestService:
         
         # Calculate available slots per cabin
         cabin_availability = {}
-        for cabin in range(1, BLOOD_TEST_CABINS_COUNT + 1):
+        for cabin in range(1, cabins_count + 1):
             booked_count = booked_per_cabin.get(cabin, 0)
-            available_slots = (total_slots * PEOPLE_PER_BLOOD_CABIN) - booked_count
+            available_slots = (total_slots * people_per_cabin) - booked_count
             cabin_availability[cabin] = max(0, available_slots)
         
         conn.close()
@@ -55,8 +57,14 @@ class BloodTestService:
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Get dynamic configuration values
+        start_time = config_manager.get('blood_test_start_time')
+        end_time = config_manager.get('blood_test_end_time')
+        slot_duration = config_manager.get('slot_duration_blood')
+        people_per_cabin = config_manager.get('people_per_blood_cabin')
+        
         # Get all possible time slots
-        all_slots = generate_time_slots(BLOOD_TEST_START_TIME, BLOOD_TEST_END_TIME, SLOT_DURATION_BLOOD)
+        all_slots = generate_time_slots(start_time, end_time, slot_duration)
         
         # Get booked slots for this cabin and location
         cursor.execute('''
@@ -72,7 +80,7 @@ class BloodTestService:
         available_slots = []
         for slot in all_slots:
             booked_count = booked_slots.get(slot, 0)
-            if booked_count < PEOPLE_PER_BLOOD_CABIN:
+            if booked_count < people_per_cabin:
                 available_slots.append(slot)
         
         conn.close()
@@ -87,8 +95,14 @@ class BloodTestService:
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Get dynamic configuration values
+        start_time = config_manager.get('blood_test_start_time')
+        end_time = config_manager.get('blood_test_end_time')
+        slot_duration = config_manager.get('slot_duration_blood')
+        people_per_cabin = config_manager.get('people_per_blood_cabin')
+        
         # Get all possible time slots
-        all_slots = generate_time_slots(BLOOD_TEST_START_TIME, BLOOD_TEST_END_TIME, SLOT_DURATION_BLOOD)
+        all_slots = generate_time_slots(start_time, end_time, slot_duration)
         
         # Get booked slots for this cabin and location
         cursor.execute('''
@@ -104,7 +118,7 @@ class BloodTestService:
         slots_with_availability = {}
         for slot in all_slots:
             booked_count = booked_slots.get(slot, 0)
-            available_count = PEOPLE_PER_BLOOD_CABIN - booked_count
+            available_count = people_per_cabin - booked_count
             slots_with_availability[slot] = max(0, available_count)
         
         conn.close()
@@ -112,7 +126,7 @@ class BloodTestService:
 
 
 class ConsultationService:
-    """Service class for consultation booking operations with location support"""
+    """Service class for consultation booking operations with dynamic configuration support"""
     
     @staticmethod
     def get_available_slots(date: str, location: str) -> List[str]:
@@ -123,8 +137,15 @@ class ConsultationService:
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Get dynamic configuration values
+        start_time = config_manager.get('consultation_start_time')
+        end_time = config_manager.get('consultation_end_time')
+        slot_duration = config_manager.get('slot_duration_consultation')
+        cabins_count = config_manager.get('consultation_cabins_count')
+        people_per_cabin = config_manager.get('people_per_consultation_cabin')
+        
         # Get all possible time slots
-        all_slots = generate_time_slots(CONSULTATION_START_TIME, CONSULTATION_END_TIME, SLOT_DURATION_CONSULTATION)
+        all_slots = generate_time_slots(start_time, end_time, slot_duration)
         
         # Get booked slots for this date and location
         cursor.execute('''
@@ -139,8 +160,8 @@ class ConsultationService:
         available_slots = []
         for slot in all_slots:
             booked_count = booked_slots.count(slot)
-            # Each location has 4 consultation cabins, each can handle 1 person per slot
-            if booked_count < CONSULTATION_CABINS_COUNT * PEOPLE_PER_CONSULTATION_CABIN:
+            # Each location has configurable consultation cabins, each can handle configurable people per slot
+            if booked_count < cabins_count * people_per_cabin:
                 available_slots.append(slot)
         
         conn.close()
@@ -148,7 +169,7 @@ class ConsultationService:
 
 
 class BookingManager:
-    """Main booking management class with location support"""
+    """Main booking management class with dynamic configuration support"""
     
     def __init__(self):
         self.blood_test_service = BloodTestService()
@@ -164,6 +185,11 @@ class BookingManager:
         location = booking_data.get('location')
         if not location:
             return False, 'Location is required'
+        
+        # Validate location against current configuration
+        current_locations = config_manager.get('locations')
+        if location not in current_locations:
+            return False, 'Invalid location selected'
         
         # Check blood test slot availability
         blood_available = self.blood_test_service.get_available_slots(

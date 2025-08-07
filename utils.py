@@ -1,10 +1,10 @@
-# utils.py - Utility functions for date and time operations with location support
+# utils.py - Utility functions for date and time operations with dynamic location support
 
 from datetime import datetime, timedelta, date
 from typing import List
 from functools import wraps
 from flask import session, redirect, url_for
-from config import LOCATIONS
+from config import config_manager
 
 
 def admin_required(f):
@@ -52,7 +52,7 @@ def generate_time_slots(start_time: str, end_time: str, duration: int) -> List[s
 
 def validate_booking_data(form_data):
     """
-    Validate booking form data with location support
+    Validate booking form data with dynamic location support
     
     Returns:
         tuple: (is_valid: bool, error_message: str or None, processed_data: dict)
@@ -77,8 +77,9 @@ def validate_booking_data(form_data):
         if not all([name, email, age, gender, phone, location, blood_test_date, blood_test_time, blood_test_cabin]):
             return False, 'Please fill in all required fields', None
         
-        # Validate location
-        if location not in LOCATIONS:
+        # Validate location using dynamic configuration
+        current_locations = config_manager.get('locations')
+        if location not in current_locations:
             return False, 'Invalid location selected', None
         
         # Convert and validate numeric fields
