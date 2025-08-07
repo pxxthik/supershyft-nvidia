@@ -13,7 +13,7 @@ from flask import (
 from datetime import datetime, timedelta
 
 # Import our modules
-from config import SECRET_KEY, ADMIN_PASSWORD, LOCATIONS
+from config import SECRET_KEY, ADMIN_PASSWORD, LOCATIONS, BLOOD_TEST_ALLOWED_DATES, CONSULTATION_ALLOWED_DATES
 from database import (
     init_db,
     save_booking,
@@ -34,34 +34,35 @@ booking_manager = BookingManager()
 
 
 def validate_blood_test_date(date_str):
-    """Validate if the date is within allowed blood test range (19th-22nd August 2025)"""
+    """Validate if the date is within the allowed blood test dates"""
     try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        # Check if the format is valid
+        datetime.strptime(date_str, "%Y-%m-%d")
 
-        # Check if date is 19th-22nd August 2025
-        if date_obj.year == 2025 and date_obj.month == 8 and 19 <= date_obj.day <= 22:
-            return True
-        return False
+        # Check if the date is in the allowed list
+        return date_str in BLOOD_TEST_ALLOWED_DATES
     except ValueError:
         return False
 
 
 def validate_consultation_date(date_str):
-    """Validate if the date is within allowed consultation range (25th-29th August 2025, excluding 27th)"""
+    """Validate if the date is within allowed consultation range"""
     try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        # Check if the format is valid
+        datetime.strptime(date_str, "%Y-%m-%d")
 
-        # Check if date is 25th-29th August 2025, excluding 27th (holiday)
-        if (
-            date_obj.year == 2025
-            and date_obj.month == 8
-            and 25 <= date_obj.day <= 29
-            and date_obj.day != 27
-        ):
-            return True
-        return False
+        # Check if the date is in the allowed list
+        return date_str in CONSULTATION_ALLOWED_DATES
     except ValueError:
         return False
+
+@app.route("/allowed_blood_test_dates")
+def get_allowed_blood_test_dates():
+    return jsonify({"allowed_dates": BLOOD_TEST_ALLOWED_DATES})
+
+@app.route("/allowed_consultation_dates")
+def get_allowed_consultation_dates():
+    return jsonify({"allowed_dates": CONSULTATION_ALLOWED_DATES})
 
 
 def validate_location(location):

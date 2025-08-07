@@ -88,7 +88,7 @@
             </div>
 
             <div class="info-box">
-                <strong>Blood Test Dates:</strong> 19th August - 22nd August<br>
+                <strong>Blood Test Dates:</strong> <span id="bloodTestDateRange">Loading...</span><br>
                 <strong>Time:</strong> 9:00 AM – 1:00 PM (15-min slots)<br>
                 <strong>Available in:</strong> Bangalore, Gurugram, Pune, Hyderabad
             </div>
@@ -161,7 +161,7 @@
 
             <div id="consultationSection" style="display: none;">
                 <div class="info-box">
-                    <strong>Available:</strong> 25th August - 29th August (27th Holiday)<br>
+                    <strong>Available:</strong> <span id="consultationDateRange">Loading...</span><br>
                     <strong>Time:</strong> 10:00 AM – 6:00 PM<br>
                     <strong>Duration:</strong> 30 minutes<br>
                     <strong>Available in:</strong> All selected locations
@@ -215,7 +215,81 @@
     </div>
 
     <script>
-        // Modern Date Picker Class with Custom Date Restrictions
+        // Global variables to store allowed dates
+        let allowedBloodTestDates = [];
+        let allowedConsultationDates = [];
+
+        // Function to fetch allowed dates from the server
+        async function fetchAllowedDates() {
+            try {
+                // Fetch blood test dates
+                const bloodTestResponse = await fetch('/allowed_blood_test_dates');
+                const bloodTestData = await bloodTestResponse.json();
+                allowedBloodTestDates = bloodTestData.allowed_dates || [];
+                
+                // Fetch consultation dates
+                const consultationResponse = await fetch('/allowed_consultation_dates');
+                const consultationData = await consultationResponse.json();
+                allowedConsultationDates = consultationData.allowed_dates || [];
+                
+                // Update the info boxes with date ranges
+                updateDateRangeDisplays();
+                
+                console.log('Loaded allowed dates:', {
+                    bloodTest: allowedBloodTestDates,
+                    consultation: allowedConsultationDates
+                });
+                
+            } catch (error) {
+                console.error('Error fetching allowed dates:', error);
+                // Set fallback dates if API fails
+                allowedBloodTestDates = ['2025-08-19', '2025-08-20', '2025-08-21', '2025-08-22'];
+                allowedConsultationDates = ['2025-08-25', '2025-08-26', '2025-08-28', '2025-08-29'];
+                updateDateRangeDisplays();
+            }
+        }
+
+        // Function to update date range displays in info boxes
+        function updateDateRangeDisplays() {
+            const bloodTestRangeElement = document.getElementById('bloodTestDateRange');
+            const consultationRangeElement = document.getElementById('consultationDateRange');
+            
+            if (bloodTestRangeElement && allowedBloodTestDates.length > 0) {
+                const bloodTestRange = formatDateRange(allowedBloodTestDates);
+                bloodTestRangeElement.textContent = bloodTestRange;
+            }
+            
+            if (consultationRangeElement && allowedConsultationDates.length > 0) {
+                const consultationRange = formatDateRange(allowedConsultationDates);
+                consultationRangeElement.textContent = consultationRange;
+            }
+        }
+
+        // Function to format date range for display
+        function formatDateRange(dates) {
+            if (!dates || dates.length === 0) return 'No dates available';
+            
+            const sortedDates = dates.sort();
+            const firstDate = new Date(sortedDates[0]);
+            const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+            
+            const options = { day: 'numeric', month: 'short' };
+            const firstFormatted = firstDate.toLocaleDateString('en-US', options);
+            const lastFormatted = lastDate.toLocaleDateString('en-US', options);
+            
+            if (firstFormatted === lastFormatted) {
+                return firstFormatted;
+            } else {
+                return `${firstFormatted} - ${lastFormatted}`;
+            }
+        }
+
+        // Function to check if a date is allowed
+        function isDateAllowed(dateString, allowedDatesArray) {
+            return allowedDatesArray.includes(dateString);
+        }
+
+        // Modern Date Picker Class with Dynamic Date Restrictions
         class ModernDatePicker {
             constructor(inputId, pickerId, hiddenInputId, options = {}) {
                 this.input = document.getElementById(inputId);
@@ -225,6 +299,7 @@
                     disableWeekends: options.disableWeekends || false,
                     minDate: options.minDate || new Date(),
                     onDateSelect: options.onDateSelect || null,
+                    dateType: options.dateType || 'general', // 'bloodtest' or 'consultation'
                     ...options
                 };
 
@@ -356,28 +431,14 @@
                     return true;
                 }
 
-                // Blood test date restrictions (19th-22nd August 2025)
-                if (this.hiddenInput && this.hiddenInput.id === 'blood_test_date') {
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1; // JavaScript months are 0-indexed
-                    const day = date.getDate();
+                // Format date as YYYY-MM-DD for comparison
+                const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-                    if (year === 2025 && month === 8) {
-                        return !(day >= 19 && day <= 22);
-                    }
-                    return true; // Disable all other dates
-                }
-
-                // Consultation date restrictions (25th-29th August 2025, excluding 27th)
-                if (this.hiddenInput && this.hiddenInput.id === 'consultation_date') {
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1; // JavaScript months are 0-indexed
-                    const day = date.getDate();
-
-                    if (year === 2025 && month === 8) {
-                        return !(day >= 25 && day <= 29 && day !== 27);
-                    }
-                    return true; // Disable all other dates
+                // Check against allowed dates based on date picker type
+                if (this.options.dateType === 'bloodtest') {
+                    return !isDateAllowed(dateString, allowedBloodTestDates);
+                } else if (this.options.dateType === 'consultation') {
+                    return !isDateAllowed(dateString, allowedConsultationDates);
                 }
 
                 return false;
@@ -411,9 +472,17 @@
                 };
                 return date.toLocaleDateString('en-US', options);
             }
+
+            // Method to refresh calendar when allowed dates change
+            refreshCalendar() {
+                this.renderCalendar();
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async function () {
+            // First, fetch allowed dates from the server
+            await fetchAllowedDates();
+
             const locationSelect = document.getElementById('location');
             const bloodTestCabins = document.getElementById('bloodTestCabins');
             const bloodTestSlots = document.getElementById('bloodTestSlots');
@@ -425,10 +494,11 @@
             const consultationTime = document.getElementById('consultation_time');
             const submitBtn = document.getElementById('submitBtn');
 
-            // Initialize modern date pickers
+            // Initialize modern date pickers with dynamic date restrictions
             const bloodTestPicker = new ModernDatePicker('bloodTestDateInput', 'bloodTestDatePicker', 'blood_test_date', {
                 disableWeekends: false,
                 minDate: new Date(),
+                dateType: 'bloodtest',
                 onDateSelect: (date) => {
                     loadBloodTestCabins(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
                 }
@@ -437,6 +507,7 @@
             const consultationPicker = new ModernDatePicker('consultationDateInput', 'consultationDatePicker', 'consultation_date', {
                 disableWeekends: false,
                 minDate: new Date(),
+                dateType: 'consultation',
                 onDateSelect: (date) => {
                     loadConsultationSlots(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
                 }
