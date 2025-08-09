@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,20 +8,22 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/success.css') }}" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/01-nvidia-logo-vert-500x200-2c50-d@2x.png" alt="NVIDIA Logo" class="nvidia-logo">
+            <img src="https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/01-nvidia-logo-vert-500x200-2c50-d@2x.png"
+                alt="NVIDIA Logo" class="nvidia-logo">
         </div>
-        
+
         <div class="success-card">
             <div class="success-icon">
                 <i class="fas fa-check"></i>
             </div>
-            
+
             <h1 class="success-title">Booking Confirmed!</h1>
             <p class="booking-id">Booking ID: <strong>#{{ booking[0] }}</strong></p>
-            
+
             <div class="booking-details">
                 <div class="section-title">
                     <i class="fas fa-user"></i>
@@ -43,7 +46,9 @@
                     <span class="detail-value">{{ booking[6] }}</span>
                 </div>
             </div>
-            
+
+            {% if booking[7] and booking[8] and booking[9] %}
+
             <div class="booking-details">
                 <div class="section-title">
                     <i class="fas fa-vial"></i>
@@ -62,7 +67,8 @@
                     <span class="detail-value">Cabin {{ booking[9] }}</span>
                 </div>
             </div>
-            
+            {% endif %}
+
             {% if booking[10] and booking[11] %}
             <div class="booking-details">
                 <div class="section-title">
@@ -79,16 +85,16 @@
                 </div>
             </div>
             {% endif %}
-            
+
             <div class="important-note">
                 <i class="fas fa-info-circle"></i>
                 <div class="note-content">
-                    <strong>Important:</strong> Please arrive 15 minutes before your scheduled appointment time. 
-                    Bring a valid ID and any relevant medical documents. For blood tests, please fast for 
+                    <strong>Important:</strong> Please arrive 15 minutes before your scheduled appointment time.
+                    Bring a valid ID and any relevant medical documents. For blood tests, please fast for
                     8-12 hours if instructed by your healthcare provider.
                 </div>
             </div>
-            
+
             <div class="action-buttons">
                 <a href="/" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
@@ -102,4 +108,5 @@
         </div>
     </div>
 </body>
+
 </html>

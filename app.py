@@ -230,7 +230,7 @@ def submit_booking():
             return redirect(url_for("index"))
 
         # Additional date validation for blood test
-        if not validate_blood_test_date(booking_data["blood_test_date"]):
+        if booking_data.get("blood_test_date") and not validate_blood_test_date(booking_data["blood_test_date"]):
             flash("Invalid blood test date. Please select from the available dates.")
             return redirect(url_for("index"))
 
@@ -255,7 +255,11 @@ def submit_booking():
 
         # Create success message
         location_title = booking_data["location"].title()
-        success_message = f'Booking confirmed for {location_title}! Your booking ID is {booking_id}. Blood test assigned to Cabin {booking_data["blood_test_cabin"]}.'
+        success_message = f'Booking confirmed for {location_title}!\n\n'
+
+        if booking_data.get("blood_test_date"):
+            success_message += f' Blood test scheduled for {booking_data["blood_test_date"]} at {booking_data["blood_test_time"]} in {booking_data["blood_test_cabin"]}.\n'
+
         if booking_data.get("consultation_date"):
             success_message += f' Consultation scheduled for {booking_data["consultation_date"]} at {booking_data["consultation_time"]}.'
 

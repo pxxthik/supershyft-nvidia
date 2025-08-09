@@ -74,7 +74,7 @@ def validate_booking_data(form_data):
         consultation_time = form_data.get('consultation_time')
         
         # Validate required fields
-        if not all([name, email, age, gender, phone, location, blood_test_date, blood_test_time, blood_test_cabin]):
+        if not all([name, email, age, gender, phone, location]):
             return False, 'Please fill in all required fields', None
         
         # Validate location using dynamic configuration
@@ -85,13 +85,15 @@ def validate_booking_data(form_data):
         # Convert and validate numeric fields
         try:
             age = int(age)
-            blood_test_cabin = int(blood_test_cabin)
         except ValueError:
             return False, 'Invalid age or cabin number', None
         
         # Validate blood test date
-        if not is_valid_date(blood_test_date):
-            return False, 'Invalid blood test date or date is in the past', None
+        if blood_test_date:
+            blood_test_cabin = int(blood_test_cabin)
+
+            if not is_valid_date(blood_test_date):
+                return False, 'Invalid blood test date or date is in the past', None
         
         # Validate consultation date if provided
         if consultation_date and not is_valid_date(consultation_date):

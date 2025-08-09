@@ -192,14 +192,16 @@ class BookingManager:
             return False, 'Invalid location selected'
         
         # Check blood test slot availability
-        blood_available = self.blood_test_service.get_available_slots(
-            booking_data['blood_test_date'], 
-            booking_data['blood_test_cabin'],
-            location
-        )
+        if booking_data.get('blood_test_date'):
+            # Get available blood test slots
+            blood_available = self.blood_test_service.get_available_slots(
+                booking_data['blood_test_date'], 
+                booking_data['blood_test_cabin'],
+                location
+            )
         
-        if booking_data['blood_test_time'] not in blood_available:
-            return False, f'Selected blood test slot is no longer available in {location.title()}'
+            if booking_data['blood_test_time'] not in blood_available:
+                return False, f'Selected blood test slot is no longer available in {location.title()}'
         
         # Check consultation slot availability if consultation is booked
         if (booking_data.get('consultation_date') and 

@@ -704,7 +704,7 @@
             function checkFormValidity() {
                 const form = document.getElementById('bookingForm');
                 const formData = new FormData(form);
-                const requiredFields = ['name', 'email', 'age', 'gender', 'phone', 'location', 'blood_test_date'];
+                const requiredFields = ['name', 'email', 'age', 'gender', 'phone', 'location'];
 
                 let isValid = true;
                 let missingFields = [];
@@ -718,17 +718,6 @@
                     }
                 });
 
-                // Check blood test cabin and time
-                if (!bloodTestCabin.value || bloodTestCabin.value.trim() === '') {
-                    isValid = false;
-                    missingFields.push('blood_test_cabin');
-                }
-
-                if (!bloodTestTime.value || bloodTestTime.value.trim() === '') {
-                    isValid = false;
-                    missingFields.push('blood_test_time');
-                }
-
                 // If consultation is selected, check consultation fields
                 const wantConsultation = formData.get('want_consultation');
                 if (wantConsultation === 'yes') {
@@ -740,6 +729,15 @@
                         isValid = false;
                         missingFields.push('consultation_time');
                     }
+                }else{
+                    let wantedFields = ['blood_test_date', 'blood_test_time', 'blood_test_cabin'];
+                    wantedFields.forEach(field => {
+                        const value = formData.get(field);
+                        if (!value || value.trim() === '') {
+                            isValid = false;
+                            missingFields.push(field);
+                        }
+                    });
                 }
 
                 submitBtn.disabled = !isValid;
