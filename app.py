@@ -7,7 +7,6 @@ from flask import (
     jsonify,
     redirect,
     url_for,
-    flash,
     session,
 )
 from datetime import datetime, timedelta
@@ -102,7 +101,7 @@ def booking_success(booking_id):
     booking = get_booking_by_id(booking_id)
 
     if not booking:
-        flash("Booking not found")
+        print("Booking not found")
         return redirect(url_for("index"))
 
     return render_template("success.html", booking=booking)
@@ -221,24 +220,24 @@ def submit_booking():
         is_valid, error_message, booking_data = validate_booking_data(request.form)
 
         if not is_valid:
-            flash(error_message)
+            print(error_message)
             return redirect(url_for("index"))
 
         # Validate location
         if not validate_location(booking_data.get("location")):
-            flash("Invalid location selected.")
+            print("Invalid location selected.")
             return redirect(url_for("index"))
 
         # Additional date validation for blood test
         if booking_data.get("blood_test_date") and not validate_blood_test_date(booking_data["blood_test_date"]):
-            flash("Invalid blood test date. Please select from the available dates.")
+            print("Invalid blood test date. Please select from the available dates.")
             return redirect(url_for("index"))
 
         # Additional date validation for consultation (if selected)
         if booking_data.get("consultation_date") and not validate_consultation_date(
             booking_data["consultation_date"]
         ):
-            flash("Invalid consultation date. Please select from the available dates.")
+            print("Invalid consultation date. Please select from the available dates.")
             return redirect(url_for("index"))
 
         # Check if selected slots are still available
@@ -247,7 +246,7 @@ def submit_booking():
         )
 
         if not slot_valid:
-            flash(slot_error)
+            print(slot_error)
             return redirect(url_for("index"))
 
         # Save booking to database
@@ -263,11 +262,11 @@ def submit_booking():
         if booking_data.get("consultation_date"):
             success_message += f' Consultation scheduled for {booking_data["consultation_date"]} at {booking_data["consultation_time"]}.'
 
-        flash(success_message)
+        print(success_message)
         return redirect(url_for("booking_success", booking_id=booking_id))
 
     except Exception as e:
-        flash(f"Error processing booking: {str(e)}")
+        print(f"Error processing booking: {str(e)}")
         return redirect(url_for("index"))
 
 
@@ -279,10 +278,10 @@ def admin_login():
         password = request.form.get("password")
         if password == ADMIN_PASSWORD:
             session["admin_authenticated"] = True
-            flash("Login successful!")
+            print("Login successful!")
             return redirect(url_for("admin"))
         else:
-            flash("Invalid password. Please try again.")
+            print("Invalid password. Please try again.")
 
     return render_template("admin_login.html")
 
@@ -291,7 +290,7 @@ def admin_login():
 def admin_logout():
     """Admin logout"""
     session.pop("admin_authenticated", None)
-    flash("You have been logged out.")
+    print("You have been logged out.")
     return redirect(url_for("admin_login"))
 
 
@@ -312,14 +311,14 @@ def delete_booking(booking_id):
         success, booking_name = delete_booking_by_id(booking_id)
 
         if success:
-            flash(
+            print(
                 f"Booking #{booking_id} for {booking_name} has been successfully deleted."
             )
         else:
-            flash("Booking not found.")
+            print("Booking not found.")
 
     except Exception as e:
-        flash(f"Error deleting booking: {str(e)}")
+        print(f"Error deleting booking: {str(e)}")
 
     return redirect(url_for("admin"))
 
@@ -353,7 +352,7 @@ def admin_config_save():
         locations = request.form.getlist('locations[]')
         locations = [loc.strip() for loc in locations if loc.strip()]
         if not locations:
-            flash("At least one location is required")
+            print("At least one location is required")
             return redirect(url_for("admin_config"))
         config_updates['locations'] = locations
         
@@ -368,7 +367,7 @@ def admin_config_save():
         blood_dates = request.form.getlist('blood_test_allowed_dates[]')
         blood_dates = [date.strip() for date in blood_dates if date.strip()]
         if not blood_dates:
-            flash("At least one blood test date is required")
+            print("At least one blood test date is required")
             return redirect(url_for("admin_config"))
         config_updates['blood_test_allowed_dates'] = blood_dates
         
@@ -383,7 +382,7 @@ def admin_config_save():
         consultation_dates = request.form.getlist('consultation_allowed_dates[]')
         consultation_dates = [date.strip() for date in consultation_dates if date.strip()]
         if not consultation_dates:
-            flash("At least one consultation date is required")
+            print("At least one consultation date is required")
             return redirect(url_for("admin_config"))
         config_updates['consultation_allowed_dates'] = consultation_dates
         
@@ -391,7 +390,7 @@ def admin_config_save():
         is_valid, validation_errors = ConfigValidator.validate_config(config_updates)
         if not is_valid:
             for error in validation_errors:
-                flash(f"Validation Error: {error}")
+                print(f"Validation Error: {error}")
             return redirect(url_for("admin_config"))
         
         # Update configuration
@@ -400,14 +399,14 @@ def admin_config_save():
         # Reload configuration in the application
         reload_config()
         
-        flash("Configuration updated successfully!")
+        print("Configuration updated successfully!")
         return redirect(url_for("admin_config"))
         
     except ValueError as e:
-        flash(f"Invalid input: {str(e)}")
+        print(f"Invalid input: {str(e)}")
         return redirect(url_for("admin_config"))
     except Exception as e:
-        flash(f"Error saving configuration: {str(e)}")
+        print(f"Error saving configuration: {str(e)}")
         return redirect(url_for("admin_config"))
 
 
@@ -418,9 +417,9 @@ def admin_config_reset():
     try:
         config_manager.reset_to_defaults()
         reload_config()
-        flash("Configuration has been reset to default values!")
+        print("Configuration has been reset to default values!")
     except Exception as e:
-        flash(f"Error resetting configuration: {str(e)}")
+        print(f"Error resetting configuration: {str(e)}")
     
     return redirect(url_for("admin_config"))
 
