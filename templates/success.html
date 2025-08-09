@@ -12,8 +12,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/01-nvidia-logo-vert-500x200-2c50-d@2x.png"
-                alt="NVIDIA Logo" class="nvidia-logo">
+            <img src="{{ url_for('static', filename='assets/company-logo.svg') }}" alt="Fitnastic Logo"
+                class="nvidia-logo">
         </div>
 
         <div class="success-card">
@@ -93,17 +93,6 @@
                     Bring a valid ID and any relevant medical documents. For blood tests, please fast for
                     8-12 hours if instructed by your healthcare provider.
                 </div>
-            </div>
-
-            <div class="action-buttons">
-                <a href="/" class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    Book Another Appointment
-                </a>
-                <a href="/admin" class="btn btn-secondary">
-                    <i class="fas fa-list"></i>
-                    View All Bookings
-                </a>
             </div>
         </div>
     </div>

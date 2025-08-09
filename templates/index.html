@@ -12,7 +12,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ url_for('static', filename='assets/company-logo.svg') }}" alt="NVIDIA Logo"
+            <img src="{{ url_for('static', filename='assets/company-logo.svg') }}" alt="Fitnastic Logo"
                 class="nvidia-logo">
             <h1><b>Fitnastic Health Camp Registration</b></h1>
             <p>Book your <b>Blood Test Appointment</b> and Schedule your <b>Consultation with our Doctors & Nutrition
@@ -404,10 +404,6 @@
                         dayElement.classList.add('other-month');
                     }
 
-                    if (cellDate.getTime() === today.getTime()) {
-                        dayElement.classList.add('today');
-                    }
-
                     if (this.selectedDate && cellDate.getTime() === this.selectedDate.getTime()) {
                         dayElement.classList.add('selected');
                     }
@@ -493,6 +489,7 @@
             const consultationSlots = document.getElementById('consultationSlots');
             const consultationTime = document.getElementById('consultation_time');
             const submitBtn = document.getElementById('submitBtn');
+            const bookingForm = document.getElementById('bookingForm');
 
             // Initialize modern date pickers with dynamic date restrictions
             const bloodTestPicker = new ModernDatePicker('bloodTestDateInput', 'bloodTestDatePicker', 'blood_test_date', {
@@ -525,8 +522,10 @@
                 radio.addEventListener('change', function () {
                     if (this.value === 'yes') {
                         consultationSection.style.display = 'block';
+                        bookingForm.style.marginBottom = '10rem';
                     } else {
                         consultationSection.style.display = 'none';
+                        bookingForm.style.marginBottom = '30px';
                         document.getElementById('consultation_date').value = '';
                         consultationTime.value = '';
                     }
